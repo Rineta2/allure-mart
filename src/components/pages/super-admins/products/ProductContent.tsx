@@ -1,16 +1,16 @@
 import React from 'react'
 
-export default function SellerContent() {
+export default function ProductContent() {
     return (
         <section className='p-4'>
             <div className="container">
                 <div className="flex justify-between items-center">
                     <div className="flex flex-col gap-2">
-                        <h1 className='text-2xl font-bold'>Daftar Sellers</h1>
-                        <p className='text-sm text-gray-500'>Daftar semua akun seller yang sudah terdaftar</p>
+                        <h1 className='text-2xl font-bold'>Daftar Produk</h1>
+                        <p className='text-sm text-gray-500'>Daftar semua produk yang sudah terdaftar</p>
 
                         <label className="input input-bordered flex items-center gap-2 mt-2">
-                            <input type="text" className="grow" placeholder="Cari Seller..." />
+                            <input type="text" className="grow" placeholder="Cari Produk..." />
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 16 16"
@@ -25,7 +25,7 @@ export default function SellerContent() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <button className="btn btn-primary hover:bg-primary/80">Tambah Seller</button>
+                        <button className="btn btn-primary hover:bg-primary/80">Tambah Produk</button>
                     </div>
                 </div>
             </div>

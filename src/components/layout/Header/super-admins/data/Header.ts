@@ -1,8 +1,10 @@
-import { FiHome, FiUsers, FiSettings } from "react-icons/fi";
+import { FiHome, FiSettings } from "react-icons/fi";
 
 import { RiAdminFill } from "react-icons/ri";
 
 import { MdFeaturedPlayList } from "react-icons/md";
+
+import { GiCardboardBoxClosed } from "react-icons/gi";
 
 export const menuItems = [
   {
@@ -30,12 +32,12 @@ export const menuItems = [
   },
 
   {
-    icon: FiUsers,
-    label: "Siswa",
-    href: "/super-admins/student",
+    icon: GiCardboardBoxClosed,
+    label: "Produk",
+    href: "/super-admins/dashboard/products",
     subItems: [
-      { label: "Daftar Siswa", href: "/super-admins/student/list" },
-      { label: "Tambah Siswa", href: "/super-admins/student/add" },
+      { label: "Daftar Produk", href: "/super-admins/dashboard/products" },
+      { label: "Kategori", href: "/super-admins/dashboard/products/category" },
     ],
   },
 
