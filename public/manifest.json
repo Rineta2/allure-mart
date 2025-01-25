@@ -1,0 +1,43 @@
+{
+  "short_name": "ALLURE MART - Pesona Dalam Genggaman",
+  "name": "ALLURE MART - Pesona Dalam Genggaman",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#f5f5f5",
+  "background_color": "#f5f5f5",
+  "prefer_related_applications": false,
+  "categories": [
+    "kosmetik",
+    "perawatan kecantikan",
+    "pria",
+    "wanita",
+    "anak",
+    "bayi",
+    "remaja"
+  ],
+  "screenshots": [
+    {
+      "src": "/icon.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ],
+  "description": "Allure Mart"
+}
