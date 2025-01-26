@@ -6,6 +6,10 @@ import Image from "next/image"
 
 import Link from "next/link"
 
+import imgScroll from "@/components/assets/home/scroll.png"
+
+import { LuArrowDown } from "react-icons/lu";
+
 export default function Home() {
     return (
         <section className='min-h-screen flex items-center justify-center relative overflow-hidden'>
@@ -38,6 +42,20 @@ export default function Home() {
                             {homeData.name}
                         </Link>
                     </div>
+                </div>
+
+                <div className="absolute bottom-[-50%] left-[50%] w-full h-full flex items-center justify-center z-10">
+                    <a href="#populer" className="relative">
+                        <Image
+                            src={imgScroll}
+                            alt="scroll"
+                            className="object-cover animate-spin infinite ease-in-out w-32 h-32 [filter:sepia(100%)_saturate(10000%)_hue-rotate(230deg)]"
+                            style={{ animationDuration: '3000ms' }}
+                            width={500}
+                            height={500}
+                        />
+                        <LuArrowDown className="absolute bottom-[32%] left-[38%] transform -translate-x-1/2 text-4xl animate-bounce text-text" />
+                    </a>
                 </div>
             </div>
         </section>

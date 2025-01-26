@@ -2,6 +2,8 @@
 
 import { useFetchProducts } from "@/utils/section/products/useFetch";
 
+import { useCart } from '@/components/router/auth/CartContext';
+
 import Link from "next/link";
 
 import ProductsSkeleton from "@/components/section/Our-Products/ProductsSkelaton";
@@ -11,6 +13,7 @@ import Image from "next/image";
 import { createSlug } from "@/components/helper/stringSlug"
 
 export default function OurProducts() {
+    const { addToCart } = useCart();
     const { products, loading } = useFetchProducts();
 
     const visibleProducts = 8;
@@ -70,9 +73,13 @@ export default function OurProducts() {
                                         transition-opacity duration-300 flex flex-col items-center justify-center gap-2">
                                             <div className="flex gap-2">
                                                 <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        addToCart(item);
+                                                    }}
                                                     className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium
-                                                hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0
-                                                transition-transform duration-300 flex items-center gap-2"
+                                                    hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0
+                                                    transition-transform duration-300 flex items-center gap-2"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                         strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -83,8 +90,8 @@ export default function OurProducts() {
 
                                                 <Link href={`/shop/${createSlug(item.category.name)}/${item.slug}`}
                                                     className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium
-                                                hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0
-                                                transition-transform duration-300 flex items-center gap-2"
+                                                    hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0
+                                                    transition-transform duration-300 flex items-center gap-2"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                         strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">

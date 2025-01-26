@@ -14,67 +14,80 @@ import { PiSignIn } from "react-icons/pi";
 
 import { RiMenu5Fill } from "react-icons/ri";
 
+import { IoClose } from "react-icons/io5";
+
 import { navLink } from "@/components/layout/Header/data/Header";
 
 import gsap from "gsap";
 
 import { useAuth } from '@/components/router/auth/AuthContext';
 
+import { useCart } from '@/components/router/auth/CartContext';
+
+const cn = (...classes: (string | boolean | undefined)[]) => {
+    return classes.filter(Boolean).join(' ')
+}
+
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
     const { user, logout } = useAuth();
     const profileRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLElement>(null);
+    const cartRef = useRef<HTMLDivElement>(null);
+    const { totalItems, cartItems, removeFromCart, updateQuantity } = useCart();
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 0);
+            setIsScrolled(window.scrollY > 50);
         };
 
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
                 setIsProfileOpen(false);
             }
+            if (cartRef.current && !cartRef.current.contains(event.target as Node)) {
+                setIsCartOpen(false);
+            }
         };
 
-        window.addEventListener('scroll', handleScroll);
         document.addEventListener('mousedown', handleClickOutside);
-
-        return () => {
-            window.removeEventListener('scroll', handleScroll);
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     useEffect(() => {
         if (isMenuOpen) {
-            // Animasi untuk container menu
-            gsap.fromTo(".mobile-menu-container",
+            gsap.fromTo(".mobile-menu",
                 {
                     opacity: 0,
-                    y: -20,
+                    x: "100%"
                 },
                 {
                     opacity: 1,
-                    y: 0,
-                    duration: 0.3,
-                    ease: "power2.out"
+                    x: "0%",
+                    duration: 0.4,
+                    ease: "power3.out"
                 }
             );
 
-            // Animasi untuk item menu
             gsap.fromTo(".menu-item",
                 {
                     opacity: 0,
-                    y: -20,
+                    y: 20
                 },
                 {
                     opacity: 1,
                     y: 0,
                     duration: 0.4,
                     stagger: 0.1,
-                    ease: "power2.out"
+                    ease: "power3.out"
                 }
             );
         }
@@ -89,131 +102,211 @@ export default function Header() {
         }
     };
 
-    const toggleProfile = () => {
-        setIsProfileOpen(!isProfileOpen);
-    };
-
     return (
-        <header className={`fixed top-0 left-0 right-0 z-50 w-full py-2 sm:py-3 bg-background/95 backdrop-blur-sm transition-shadow duration-200 ${isScrolled ? 'shadow-lg' : ''
-            }`}>
-            <nav className='container flex items-center justify-between h-12 sm:h-14 md:h-16 px-4 sm:px-6 lg:px-8'>
-                <div className="relative w-24 sm:w-28 md:w-32 lg:w-40">
-                    <Image
-                        src={profile}
-                        alt="profile"
-                        width={500}
-                        height={500}
-                        className='w-full h-auto object-contain'
-                        loading="eager"
-                        priority
-                    />
-                </div>
-
-                {/* Desktop Menu */}
-                <ul className="hidden md:flex items-center gap-4 lg:gap-10">
-                    {navLink.map((item) => (
-                        <li key={item.id}>
-                            <Link
-                                href={item.href}
-                                className="relative py-2 text-[14px] lg:text-[16px] font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
-                            >
-                                {item.name}
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
-
-                <div className="flex items-center gap-2 sm:gap-3">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="md:hidden p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors duration-200"
-                        aria-label="Toggle menu"
-                    >
-                        <RiMenu5Fill className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </button>
-
-                    <Link
-                        href="/cart"
-                        className="p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors duration-200"
-                        aria-label="Shopping cart"
-                    >
-                        <FaShoppingBag className="w-4 h-4 sm:w-6 sm:h-6" />
+        <header
+            ref={headerRef}
+            className={cn(
+                "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
+                isScrolled
+                    ? "py-2 bg-background/80 backdrop-blur-lg shadow-sm"
+                    : "py-4 bg-background/50 backdrop-blur-sm"
+            )}
+        >
+            <nav className="container mx-auto px-4 lg:px-8">
+                <div className="flex items-center justify-between">
+                    <Link href="/" className="relative w-24 md:w-32 transition-all duration-300">
+                        <Image
+                            src={profile}
+                            alt="logo"
+                            width={500}
+                            height={500}
+                            className="w-full h-auto object-contain"
+                            priority
+                        />
                     </Link>
 
-                    {user ? (
-                        <div className="relative" ref={profileRef}>
-                            <button
-                                onClick={toggleProfile}
-                                className="focus:outline-none mt-1"
-                                aria-label="Toggle profile menu"
-                            >
-                                {user.photoURL ? (
-                                    <Image
-                                        src={user.photoURL}
-                                        alt={user.displayName}
-                                        width={500}
-                                        height={500}
-                                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-full cursor-pointer object-cover"
-                                    />
-                                ) : (
-                                    <FaUserCircle className="w-6 h-6 sm:w-7 sm:h-7 cursor-pointer text-muted-foreground hover:text-primary transition-colors duration-200" />
-                                )}
-                            </button>
-
-                            {/* Dropdown menu */}
-                            {isProfileOpen && (
-                                <div className="absolute right-0 mt-2 w-48 py-2 bg-background border border-border/40 rounded-md shadow-lg">
-                                    <div className="px-4 py-2 border-b border-border/40">
-                                        <p className="text-sm font-medium truncate">{user.displayName}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                                    </div>
-                                    <Link
-                                        href={user.role === 'user' ? '/profile' : `/${user.role}/dashboard`}
-                                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors duration-200"
-                                        onClick={() => setIsProfileOpen(false)}
-                                    >
-                                        {user.role === 'user' ? 'Profile' : 'Dashboard'}
-                                    </Link>
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full text-left px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-accent transition-colors duration-200"
-                                    >
-                                        Sign Out
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <Link
-                            href="/auth/login"
-                            className="p-1.5 sm:p-2 hover:bg-accent rounded-md transition-colors duration-200"
-                            aria-label="Login"
-                        >
-                            <PiSignIn className="w-5 h-5 sm:w-6 sm:h-6" />
-                        </Link>
-                    )}
-                </div>
-            </nav>
-
-            {/* Mobile Menu */}
-            {isMenuOpen && (
-                <div className="mobile-menu-container md:hidden absolute top-full left-0 right-0 w-full bg-background/95 backdrop-blur-sm border-b border-border/40">
-                    <ul className="container py-4 px-4 space-y-3 flex justify-center items-center flex-col gap-4">
+                    <ul className="hidden md:flex items-center gap-8">
                         {navLink.map((item) => (
-                            <li
-                                key={item.id}
-                                className="menu-item w-full text-center"
-                            >
+                            <li key={item.id}>
                                 <Link
                                     href={item.href}
-                                    className="block py-2 text-[14px] sm:text-[16px] font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
-                                    onClick={() => setIsMenuOpen(false)}
+                                    className="relative text-[15px] font-medium text-muted-foreground hover:text-primary transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[2px] after:w-0 after:bg-primary after:transition-all hover:after:w-full"
                                 >
                                     {item.name}
                                 </Link>
                             </li>
                         ))}
                     </ul>
+
+                    <div className="flex items-center gap-3">
+                        <div className="relative" ref={cartRef}>
+                            <button
+                                onClick={() => setIsCartOpen(!isCartOpen)}
+                                className="p-2 hover:bg-accent rounded-full transition-colors duration-200 relative"
+                            >
+                                <FaShoppingBag className="w-5 h-5" />
+                                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                                    {totalItems}
+                                </span>
+                            </button>
+
+                            {isCartOpen && (
+                                <div className="absolute right-0 mt-2 w-80 rounded-xl bg-background border border-border/40 shadow-lg">
+                                    <div className="p-4">
+                                        <h3 className="font-medium text-lg mb-3">Shopping Cart</h3>
+                                        {cartItems.length === 0 ? (
+                                            <div className="text-center text-muted-foreground py-8">
+                                                Your cart is empty
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="max-h-[300px] overflow-y-auto">
+                                                    {cartItems.map((item) => (
+                                                        <div key={item.id} className="flex gap-3 py-3 border-b border-border/40">
+                                                            <Image
+                                                                src={item.thumbnail}
+                                                                alt={item.title}
+                                                                width={500}
+                                                                height={500}
+                                                                className="w-16 h-16 object-cover rounded-lg"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <h4 className="font-medium">{item.name}</h4>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    ${item.price.toLocaleString()}
+                                                                </p>
+                                                                <div className="flex items-center gap-2 mt-1">
+                                                                    <button
+                                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                                        className="p-1 hover:bg-accent rounded"
+                                                                    >
+                                                                        -
+                                                                    </button>
+                                                                    <span>{item.quantity}</span>
+                                                                    <button
+                                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                                        className="p-1 hover:bg-accent rounded"
+                                                                    >
+                                                                        +
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => removeFromCart(item.id)}
+                                                                        className="ml-auto text-red-500 hover:text-red-600"
+                                                                    >
+                                                                        Remove
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="mt-4 pt-4 border-t border-border/40">
+                                                    <div className="flex justify-between mb-4">
+                                                        <span className="font-medium">Total:</span>
+                                                        <span className="font-medium">
+                                                            ${cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toLocaleString()}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200"
+                                                        onClick={() => {
+                                                            setIsCartOpen(false);
+                                                            // Add checkout logic here
+                                                        }}
+                                                    >
+                                                        Checkout
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {user ? (
+                            <div className="relative" ref={profileRef}>
+                                <button
+                                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                    className="focus:outline-none"
+                                >
+                                    {user.photoURL ? (
+                                        <Image
+                                            src={user.photoURL}
+                                            alt={user.displayName || "User"}
+                                            width={32}
+                                            height={32}
+                                            className="rounded-full ring-2 ring-background"
+                                        />
+                                    ) : (
+                                        <FaUserCircle className="w-6 h-6 text-muted-foreground hover:text-primary transition-colors duration-200" />
+                                    )}
+                                </button>
+
+                                {isProfileOpen && (
+                                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-background border border-border/40 shadow-lg overflow-hidden">
+                                        <div className="p-3 border-b border-border/40">
+                                            <p className="font-medium truncate">{user.displayName}</p>
+                                            <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                        </div>
+                                        <div className="p-2">
+                                            <Link
+                                                href={user.role === 'user' ? '/profile' : `/${user.role}/dashboard`}
+                                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-accent transition-colors duration-200"
+                                                onClick={() => setIsProfileOpen(false)}
+                                            >
+                                                {user.role === 'user' ? 'Profile' : 'Dashboard'}
+                                            </Link>
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-accent text-red-500 hover:text-red-600 transition-colors duration-200"
+                                            >
+                                                Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Link
+                                href="/auth/login"
+                                className="p-2 hover:bg-accent rounded-full transition-colors duration-200"
+                            >
+                                <PiSignIn className="w-5 h-5" />
+                            </Link>
+                        )}
+
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            className="p-2 md:hidden hover:bg-accent rounded-full transition-colors duration-200"
+                        >
+                            {isMenuOpen ? (
+                                <IoClose className="w-6 h-6" />
+                            ) : (
+                                <RiMenu5Fill className="w-6 h-6" />
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {isMenuOpen && (
+                <div className="mobile-menu fixed left-0 right-0 top-[72px] bg-white w-full md:hidden overflow-y-auto shadow-lg">
+                    <nav className="container px-4 py-8">
+                        <ul className="space-y-6">
+                            {navLink.map((item) => (
+                                <li key={item.id} className="menu-item">
+                                    <Link
+                                        href={item.href}
+                                        className="block text-xl font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
                 </div>
             )}
         </header>

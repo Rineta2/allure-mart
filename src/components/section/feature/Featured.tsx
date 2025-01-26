@@ -22,7 +22,7 @@ export default function Featured() {
     }
 
     return (
-        <section className='py-16 md:py-24'>
+        <section className='py-16 md:py-24' id='populer'>
             <div className="container px-4">
                 <FeaturedHeading />
 
