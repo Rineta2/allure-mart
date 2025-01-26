@@ -2,8 +2,6 @@
 
 import { useFetchProducts } from "@/utils/section/products/useFetch";
 
-import { useState } from "react";
-
 import Link from "next/link";
 
 import ProductsSkeleton from "@/components/section/Our-Products/ProductsSkelaton";
@@ -14,7 +12,8 @@ import { createSlug } from "@/components/helper/stringSlug"
 
 export default function OurProducts() {
     const { products, loading } = useFetchProducts();
-    const [visibleProducts] = useState(8);
+
+    const visibleProducts = 8;
 
     if (loading) {
         return <ProductsSkeleton />;
@@ -30,14 +29,17 @@ export default function OurProducts() {
 
     return (
         <section className='py-16 md:py-24'>
-            <div className="container px-4 mx-auto">
+            <div className="container px-0 sm:px-4 mx-auto">
 
                 <div className="mb-16 text-center">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                        Our Products
+                    <span className="text-sm md:text-base text-primary font-semibold uppercase tracking-wider">
+                        Stock Terbaru
+                    </span>
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mt-3 mb-4">
+                        Temukan Produk Terbaru Kami
                     </h1>
-                    <p className="text-gray-600 max-w-2xl mx-auto">
-                        Discover our collection of high-quality products
+                    <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
+                        Kami telah menyediakan koleksi produk terbaru kami yang paling diminati! Kualitas terjamin dengan harga terbaik untuk Anda.
                     </p>
                 </div>
 
@@ -51,7 +53,7 @@ export default function OurProducts() {
                                     shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 
                                     border border-gray-100"
                                 >
-                                    <div className="relative w-full max-h-[350px] aspect-square overflow-hidden rounded-t-2xl">
+                                    <div className="relative w-full max-h-[100%] md:max-h-[250px] xl:max-h-[350px] aspect-square overflow-hidden rounded-t-2xl">
                                         {item.thumbnail && (
                                             <Image
                                                 src={item.thumbnail}
@@ -131,11 +133,11 @@ export default function OurProducts() {
                         })}
                 </div>
 
-                {sortedProducts.length > visibleProducts && (
-                    <div className="text-center mt-8">
+                {sortedProducts.length >= 8 && (
+                    <div className="text-center mt-10">
                         <Link
                             href="/shop"
-                            className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                            className="inline-block px-10 py-2 bg-transparent text-title border border-text rounded-lg hover:bg-primary hover:text-white  hover:border-primary
                             transition-colors duration-300"
                         >
                             Show More
