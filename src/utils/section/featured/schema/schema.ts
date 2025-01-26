@@ -11,13 +11,3 @@ export interface Featured {
   message: string;
   data: FeaturedData[];
 }
-
-export interface FirestoreDocument {
-  name: string;
-  fields: {
-    title?: { stringValue: string };
-    createdAt?: { timestampValue: string };
-    updatedAt?: { timestampValue: string };
-    imageUrl?: { stringValue: string };
-  };
-}
