@@ -1,6 +1,6 @@
 import React from 'react'
 
-import ProductContent from "@/components/pages/super-admins/products/ProductContent"
+import ProductContent from "@/components/pages/super-admins/products/product/ProductContent"
 
 export async function generateMetadata() {
     return {

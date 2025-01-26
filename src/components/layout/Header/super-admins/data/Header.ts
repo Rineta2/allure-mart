@@ -38,6 +38,14 @@ export const menuItems = [
     subItems: [
       { label: "Daftar Produk", href: "/super-admins/dashboard/products" },
       { label: "Kategori", href: "/super-admins/dashboard/products/category" },
+      {
+        label: "Jenis Kelamin",
+        href: "/super-admins/dashboard/products/gender",
+      },
+      {
+        label: "Merek",
+        href: "/super-admins/dashboard/products/merek",
+      },
     ],
   },
 

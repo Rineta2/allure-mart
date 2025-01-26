@@ -10,46 +10,46 @@ import { TableRowSkeleton } from '@/components/helper/Skelaton';
 
 import Pagination from '@/components/helper/Pagination';
 
-import { Gender, FormData } from '@/components/pages/super-admins/products/gender/schema/schema';
+import { Merek, FormData } from '@/components/pages/super-admins/products/merek/schema/Schema';
 
-export default function GenderContent() {
-    const [genders, setGenders] = useState<Gender[]>([]);
+export default function MerekContent() {
+    const [mereks, setMereks] = useState<Merek[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState<FormData>({
         name: '',
     });
-    const [editingGender, setEditingGender] = useState<Gender | null>(null);
-    const [deletingGender, setDeletingGender] = useState<string | null>(null);
+    const [editingMerek, setEditingMerek] = useState<Merek | null>(null);
+    const [deletingMerek, setDeletingMerek] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     // Add this filtered items calculation before the pagination calculation
-    const filteredGenders = genders.filter(gender =>
-        gender.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredMereks = mereks.filter(merek =>
+        merek.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Update pagination calculations to use filteredMereks instead of mereks
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredGenders.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredGenders.length / itemsPerPage);
+    const currentItems = filteredMereks.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredMereks.length / itemsPerPage);
 
     // Fetch categories
-    const fetchGenders = async () => {
+    const fetchMereks = async () => {
         try {
             setLoading(true);
-            const querySnapshot = await getDocs(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_GENDERS as string));
-            const gendersData = querySnapshot.docs.map(doc => ({
+            const querySnapshot = await getDocs(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string));
+            const mereksData = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 createdAt: doc.data().createdAt?.toDate()
-            })) as Gender[];
+            })) as Merek[];
             // Sort categories by createdAt in descending order (newest first)
-            const sortedGenders = gendersData.sort((a, b) =>
+            const sortedMereks = mereksData.sort((a, b) =>
                 b.createdAt.getTime() - a.createdAt.getTime()
             );
-            setGenders(sortedGenders);
+            setMereks(sortedMereks);
         } catch (error) {
             console.error('Error fetching categories:', error);
         } finally {
@@ -58,86 +58,86 @@ export default function GenderContent() {
     };
 
     // Add new category
-    const handleAddGender = async (e: React.FormEvent) => {
+    const handleAddMerek = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setLoading(true);
             // Check for duplicate names
-            const isDuplicate = genders.some(
-                gender => gender.name.toLowerCase() === formData.name.toLowerCase()
+            const isDuplicate = mereks.some(
+                merek => merek.name.toLowerCase() === formData.name.toLowerCase()
             );
 
             if (isDuplicate) {
-                toast.error('Nama gender sudah ada, gunakan nama lain');
+                toast.error('Nama merek sudah ada, gunakan nama lain');
                 return;
             }
 
-            await addDoc(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_GENDERS as string), {
+            await addDoc(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string), {
                 ...formData,
                 createdAt: new Date()
             });
             setFormData({ name: '' });
-            const modal = document.getElementById('gender_modal') as HTMLDialogElement;
+            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
             modal?.close();
-            fetchGenders();
-            toast.success('Gender berhasil ditambahkan');
+            fetchMereks();
+            toast.success('Merek berhasil ditambahkan');
         } catch (error) {
             console.error('Error adding gender:', error);
-            toast.error('Gagal menambahkan gender');
+            toast.error('Gagal menambahkan merek');
         } finally {
             setLoading(false);
         }
     };
 
     // Add handleEditCategory function
-    const handleEditGender = async (e: React.FormEvent) => {
+    const handleEditMerek = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editingGender) return;
+        if (!editingMerek) return;
 
         try {
             setLoading(true);
-            // Check for duplicate names, excluding the current gender being edited
-            const isDuplicate = genders.some(
-                gender => gender.name.toLowerCase() === formData.name.toLowerCase()
-                    && gender.id !== editingGender.id
+            // Check for duplicate names, excluding the current merek being edited
+            const isDuplicate = mereks.some(
+                merek => merek.name.toLowerCase() === formData.name.toLowerCase()
+                    && merek.id !== editingMerek.id
             );
 
             if (isDuplicate) {
-                toast.error('Nama gender sudah ada, gunakan nama lain');
+                toast.error('Nama merek sudah ada, gunakan nama lain');
                 return;
             }
 
-            await updateDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_GENDERS as string, editingGender.id), {
+            await updateDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string, editingMerek.id), {
                 name: formData.name,
                 updatedAt: new Date()
             });
             setFormData({ name: '' });
-            setEditingGender(null);
-            const modal = document.getElementById('gender_modal') as HTMLDialogElement;
+            setEditingMerek(null);
+            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
             modal?.close();
-            fetchGenders();
-            toast.success('Gender berhasil diperbarui');
+            fetchMereks();
+            toast.success('Merek berhasil diperbarui');
         } catch (error) {
             console.error('Error updating category:', error);
-            toast.error('Gagal memperbarui gender');
+            toast.error('Gagal memperbarui merek');
         } finally {
             setLoading(false);
         }
     };
 
     // Update delete category function
-    const handleDeleteGender = async (id: string) => {
+    const handleDeleteMerek = async (id: string) => {
         try {
             setLoading(true);
-            await deleteDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_GENDERS as string, id));
+            await deleteDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string, id));
             const modal = document.getElementById('delete_modal') as HTMLDialogElement;
             modal?.close();
-            setDeletingGender(null);
-            fetchGenders();
-            toast.success('Gender berhasil dihapus');
+            setDeletingMerek(null);
+            fetchMereks();
+            toast.success('Merek berhasil dihapus');
         } catch (error) {
             console.error('Error deleting gender:', error);
-            toast.error('Gagal menghapus gender');
+            toast.error('Gagal menghapus merek');
         } finally {
             setLoading(false);
         }
@@ -149,7 +149,7 @@ export default function GenderContent() {
     };
 
     useEffect(() => {
-        fetchGenders();
+        fetchMereks();
     }, []);
 
     return (
@@ -159,8 +159,8 @@ export default function GenderContent() {
                 <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
                         <div className="flex flex-col gap-2">
-                            <h1 className='text-2xl font-bold text-gray-900'>Daftar Gender</h1>
-                            <p className='text-sm text-gray-500'>Daftar semua gender yang sudah terdaftar</p>
+                            <h1 className='text-2xl font-bold text-gray-900'>Daftar Merek</h1>
+                            <p className='text-sm text-gray-500'>Daftar semua merek yang sudah terdaftar</p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -168,7 +168,7 @@ export default function GenderContent() {
                                 <input
                                     type="text"
                                     className="input input-bordered w-full pl-10 bg-white border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                    placeholder="Cari Gender..."
+                                    placeholder="Cari Merek..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -180,14 +180,14 @@ export default function GenderContent() {
                             <button
                                 className="btn bg-primary hover:bg-text text-white rounded-lg px-6 py-2 flex items-center gap-2 transition-all"
                                 onClick={() => {
-                                    const modal = document.getElementById('gender_modal') as HTMLDialogElement;
+                                    const modal = document.getElementById('merek_modal') as HTMLDialogElement;
                                     modal?.showModal();
                                 }}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
-                                Tambah Genders
+                                Tambah Merek
                             </button>
                         </div>
                     </div>
@@ -200,7 +200,7 @@ export default function GenderContent() {
                             <thead>
                                 <tr className="bg-gray-50 border-b border-gray-100">
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">No</th>
-                                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Nama Gender</th>
+                                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Nama Merek</th>
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Tanggal Dibuat</th>
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Aksi</th>
                                 </tr>
@@ -211,21 +211,21 @@ export default function GenderContent() {
                                         <TableRowSkeleton key={index} />
                                     ))
                                 ) : (
-                                    currentItems.map((gender, index) => (
-                                        <tr key={gender.id} className="hover:bg-gray-50 transition-colors">
+                                    currentItems.map((merek, index) => (
+                                        <tr key={merek.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 text-center text-sm text-gray-600">
                                                 {(currentPage - 1) * itemsPerPage + index + 1}
                                             </td>
-                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{gender.name}</td>
-                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{gender.createdAt.toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{merek.name}</td>
+                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{merek.createdAt.toLocaleDateString()}</td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex gap-2 justify-center">
                                                     <button
                                                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                         onClick={() => {
-                                                            setEditingGender(gender);
-                                                            setFormData({ name: gender.name });
-                                                            const modal = document.getElementById('gender_modal') as HTMLDialogElement;
+                                                            setEditingMerek(merek);
+                                                            setFormData({ name: merek.name });
+                                                            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
                                                             modal?.showModal();
                                                         }}
                                                     >
@@ -235,7 +235,7 @@ export default function GenderContent() {
                                                     </button>
                                                     <button
                                                         onClick={() => {
-                                                            setDeletingGender(gender.id);
+                                                            setDeletingMerek(merek.id);
                                                             const modal = document.getElementById('delete_modal') as HTMLDialogElement;
                                                             modal?.showModal();
                                                         }}
@@ -263,16 +263,16 @@ export default function GenderContent() {
                 />
 
                 {/* Modals - modernized */}
-                <dialog id="gender_modal" className="modal">
+                <dialog id="merek_modal" className="modal">
                     <div className="modal-box bg-white max-w-md mx-auto p-6 rounded-xl">
                         <h3 className="font-bold text-xl text-gray-900">
-                            {editingGender ? 'Edit Gender' : 'Tambah Gender Baru'}
+                            {editingMerek ? 'Edit Merek' : 'Tambah Merek Baru'}
                         </h3>
 
-                        <form onSubmit={editingGender ? handleEditGender : handleAddGender} className='flex flex-col mt-4'>
+                        <form onSubmit={editingMerek ? handleEditMerek : handleAddMerek} className='flex flex-col mt-4'>
                             <div className="form-control flex flex-col gap-2">
                                 <label className="flex flex-col gap-2">
-                                    <span className="label-text text-gray-700">Nama Gender</span>
+                                    <span className="label-text text-gray-700">Nama Merek</span>
 
                                     <input
                                         type="text"
@@ -294,16 +294,16 @@ export default function GenderContent() {
                                             <span className="loading loading-spinner"></span>
                                             Loading...
                                         </>
-                                    ) : editingGender ? 'Update' : 'Simpan'}
+                                    ) : editingMerek ? 'Update' : 'Simpan'}
                                 </button>
                                 <button
                                     type="button"
                                     className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                     disabled={loading}
                                     onClick={() => {
-                                        setEditingGender(null);
+                                        setEditingMerek(null);
                                         setFormData({ name: '' });
-                                        const modal = document.getElementById('gender_modal') as HTMLDialogElement;
+                                        const modal = document.getElementById('merek_modal') as HTMLDialogElement;
                                         modal?.close();
                                     }}
                                 >
@@ -321,11 +321,11 @@ export default function GenderContent() {
                 <dialog id="delete_modal" className="modal">
                     <div className="modal-box bg-white p-6 rounded-xl">
                         <h3 className="font-bold text-xl text-gray-900 mb-4">Konfirmasi Hapus</h3>
-                        <p className="text-gray-600">Apakah Anda yakin ingin menghapus gender ini?</p>
+                        <p className="text-gray-600">Apakah Anda yakin ingin menghapus merek ini?</p>
                         <div className="modal-action flex gap-3 mt-8">
                             <button
                                 className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
-                                onClick={() => deletingGender && handleDeleteGender(deletingGender)}
+                                onClick={() => deletingMerek && handleDeleteMerek(deletingMerek)}
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -338,7 +338,7 @@ export default function GenderContent() {
                             <button
                                 className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                 onClick={() => {
-                                    setDeletingGender(null);
+                                    setDeletingMerek(null);
                                     const modal = document.getElementById('delete_modal') as HTMLDialogElement;
                                     modal?.close();
                                 }}

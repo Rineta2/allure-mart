@@ -31,16 +31,28 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
     };
 
     const isLinkActive = (href: string) => {
-        // Exact match for root path
+        // Remove trailing slashes for comparison
+        const normalizedPathname = pathname.replace(/\/$/, '');
+        const normalizedHref = href.replace(/\/$/, '');
+
+        // For home page
         if (href === '/') {
             return pathname === href;
         }
-        // Exact match for dashboard
-        if (href === '/super-admins/dashboard') {
-            return pathname === href;
+
+        // For dashboard page
+        if (normalizedHref === '/super-admins/dashboard') {
+            return normalizedPathname === normalizedHref;
         }
-        // For other routes, check if pathname starts with href but not for root path
-        return href !== '/' && pathname.startsWith(href);
+
+        // For menu items with subItems, only highlight parent if exact match
+        const menuItem = menuItems.find(item => item.href === href);
+        if (menuItem?.subItems) {
+            return normalizedPathname === normalizedHref;
+        }
+
+        // For submenu items or regular menu items without subItems
+        return normalizedPathname.startsWith(normalizedHref);
     };
 
     const toggleDropdown = (index: number) => {
@@ -71,55 +83,55 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
                 </button>
             </div>
 
-            {/* Profile Section */}
-            <div className="p-3 md:p-4 mt-1 md:mt-2 mb-1 md:mb-2 border-b">
-                <div className="flex items-center gap-2 md:gap-3">
+            {/* Profile Section - Updated design */}
+            <div className="p-4 mt-2 mb-2 border-b border-slate-200">
+                <div className="flex items-center gap-3">
                     <Image
                         src={user?.photoURL || '/images/default-profile.png'}
                         alt="Profile"
-                        width={40}
-                        height={40}
-                        className="rounded-full object-cover w-10 h-10 md:w-14 md:h-14"
+                        width={48}
+                        height={48}
+                        className="rounded-xl object-cover w-12 h-12"
                     />
                     <div>
-                        <p className="text-[14px] md:text-[16px] font-medium text-gray-900">{user?.displayName}</p>
-                        <p className="text-[11px] md:text-[12px] text-gray-500">Super Admin</p>
+                        <p className="text-[15px] font-semibold text-slate-900">{user?.displayName}</p>
+                        <p className="text-[12px] text-slate-500">Super Admin</p>
                     </div>
                 </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-2 md:px-4 py-1 md:py-2 overflow-y-auto">
-                <ul className="space-y-4 md:space-y-3">
+            {/* Navigation - Updated design */}
+            <nav className="flex-1 px-3 py-2 overflow-y-auto">
+                <ul className="space-y-1.5">
                     {menuItems.map((item, index) => (
                         <li key={index}>
                             {!item.subItems ? (
                                 <Link
                                     href={item.href}
                                     onClick={handleLinkClick}
-                                    className={`flex items-center gap-2 py-2 sm:py-3 px-2 sm:px-3 rounded-lg transition-colors ${isLinkActive(item.href)
-                                        ? 'bg-primary text-white hover:bg-primary/90'
-                                        : 'text-gray-600 hover:bg-primary/5 hover:text-primary'
+                                    className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-all duration-200 ${isLinkActive(item.href)
+                                        ? 'bg-primary text-white shadow-sm shadow-primary/25'
+                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                         }`}
                                 >
-                                    <item.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                                    <span className="text-[12px] sm:text-[14px] font-medium mt-1">{item.label}</span>
+                                    <item.icon className="w-5 h-5" />
+                                    <span className="text-sm font-medium">{item.label}</span>
                                 </Link>
                             ) : (
                                 <>
                                     <button
                                         onClick={() => toggleDropdown(index)}
-                                        className={`flex items-center justify-between w-full px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-colors ${item.subItems?.some(subItem => isLinkActive(subItem.href))
-                                            ? 'bg-primary text-white hover:bg-primary/90'
-                                            : 'text-gray-600 hover:bg-primary/5 hover:text-primary'
+                                        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 ${item.subItems?.some(subItem => isLinkActive(subItem.href))
+                                            ? 'bg-primary text-white shadow-sm shadow-primary/25'
+                                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                             }`}
                                     >
-                                        <div className="flex items-center gap-2 md:gap-3">
-                                            <item.icon className="w-5 h-5 md:w-6 md:h-6" />
-                                            <span className="text-[12px] md:text-[14px] font-medium mt-1">{item.label}</span>
+                                        <div className="flex items-center gap-3">
+                                            <item.icon className="w-5 h-5" />
+                                            <span className="text-sm font-medium">{item.label}</span>
                                         </div>
                                         <svg
-                                            className={`w-3 h-3 md:w-4 md:h-4 transition-transform duration-200 ${activeDropdown === index ? 'rotate-180' : ''}`}
+                                            className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === index ? 'rotate-180' : ''}`}
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
@@ -128,16 +140,16 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
                                         </svg>
                                     </button>
 
-                                    <div className={`overflow-hidden transition-all duration-200 ${activeDropdown === index ? 'max-h-40' : 'max-h-0'}`}>
-                                        <ul className="mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 px-8 md:px-10">
+                                    <div className={`overflow-hidden transition-all duration-200 ${activeDropdown === index ? 'max-h-48' : 'max-h-0'}`}>
+                                        <ul className="mt-1 space-y-1 px-3.5">
                                             {item.subItems.map((subItem, subIndex) => (
                                                 <li key={subIndex}>
                                                     <Link
                                                         href={subItem.href}
                                                         onClick={handleLinkClick}
-                                                        className={`block py-1.5 md:py-2 text-[12px] md:text-[14px] rounded-md transition-colors ${isLinkActive(subItem.href)
-                                                            ? 'text-primary font-medium bg-primary/5'
-                                                            : 'text-gray-500 hover:text-primary hover:bg-primary/5'
+                                                        className={`block py-2 px-4 text-sm rounded-md transition-all duration-200 ${isLinkActive(subItem.href)
+                                                            ? 'text-primary font-medium bg-primary/10'
+                                                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                                                             }`}
                                                     >
                                                         {subItem.label}
@@ -153,17 +165,17 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
                 </ul>
             </nav>
 
-            {/* Logout Button */}
-            <div className="p-2 md:p-4 border-t">
+            {/* Logout Button - Updated design */}
+            <div className="p-3 border-t border-slate-200">
                 <button
                     onClick={() => {
                         logout();
                         handleLinkClick();
                     }}
-                    className="flex items-center justify-center gap-1.5 md:gap-2 w-full p-2 md:p-2.5 rounded-lg text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors"
+                    className="flex items-center justify-center gap-2 w-full p-2.5 rounded-lg text-red-600 hover:bg-red-50 active:bg-red-100 transition-all duration-200"
                 >
-                    <FiLogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    <span className="text-xs md:text-sm font-medium">Logout</span>
+                    <FiLogOut className="w-4 h-4" />
+                    <span className="text-sm font-medium">Logout</span>
                 </button>
             </div>
         </header>
