@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 
 import toast from 'react-hot-toast';
 
+// Extend ProductData for cart items
 interface CartItem extends ProductData {
     quantity: number;
 }
@@ -29,6 +30,30 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+
+// Helper function to transform product data for Firebase
+const transformProductForCart = (product: ProductData): Omit<ProductData, 'category' | 'gender' | 'merek'> & {
+    category: { name: string },
+    gender: { name: string },
+    merek: { name: string }
+} => {
+    return {
+        id: product.id,
+        title: product.title,
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        content: product.content,
+        stock: product.stock,
+        slug: product.slug,
+        thumbnail: product.thumbnail,
+        imageSlider: product.imageSlider,
+        createdAt: product.createdAt,
+        category: { name: product.category.name },
+        gender: { name: product.gender.name },
+        merek: { name: product.merek.name }
+    };
+};
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -74,10 +99,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (newCartItems.length === 0) {
             await remove(cartRef);
         } else {
-            const cartObject = newCartItems.reduce((acc, item) => ({
-                ...acc,
-                [item.id]: item
-            }), {});
+            const transformedItems = newCartItems.map(item => ({
+                ...transformProductForCart(item),
+                quantity: item.quantity
+            }));
+
+            const cartObject = Object.fromEntries(
+                transformedItems.map(item => [item.id, item])
+            );
             await set(cartRef, cartObject);
         }
     };
@@ -107,7 +136,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 icon: '🛒',
             });
         } else {
-            newCartItems.push({ ...product, quantity: 1 });
+            const cartItem: CartItem = {
+                ...product,
+                quantity: 1
+            };
+            newCartItems.push(cartItem);
             toast.success('Item berhasil ditambahkan ke keranjang!', {
                 duration: 2000,
                 position: 'top-center',

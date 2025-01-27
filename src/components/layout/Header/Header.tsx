@@ -108,11 +108,11 @@ export default function Header() {
             className={cn(
                 "fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300",
                 isScrolled
-                    ? "py-2 bg-background/80 backdrop-blur-lg shadow-sm"
-                    : "py-4 bg-background/50 backdrop-blur-sm"
+                    ? "bg-background shadow-sm"
+                    : "bg-transparent"
             )}
         >
-            <nav className="container mx-auto px-4 lg:px-8">
+            <nav className="container px-4 lg:px-8">
                 <div className="flex items-center justify-between">
                     <Link href="/" className="relative w-24 md:w-32 transition-all duration-300">
                         <Image

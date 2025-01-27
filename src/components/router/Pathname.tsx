@@ -14,7 +14,7 @@ const Pathname = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     // Check for all dashboard/admin routes
-    const isAdminRoute = pathname.includes("/super-admin") ||
+    const isAdminRoute = pathname.includes("/super-admins") ||
         pathname.includes("/seller") ||
         pathname.includes("/users") ||
         pathname.includes("/auth");
@@ -32,11 +32,13 @@ const Pathname = ({ children }: { children: React.ReactNode }) => {
                     success: {
                         style: {
                             background: '#22c55e',
+                            color: '#fff',
                         },
                     },
                     error: {
                         style: {
                             background: '#ef4444',
+                            color: '#fff',
                         },
                     },
                 }}
