@@ -31,7 +31,7 @@ export default function OurProducts() {
         : [];
 
     return (
-        <section className='py-16 md:py-24'>
+        <section>
             <div className="container px-0 sm:px-4 mx-auto">
 
                 <div className="mb-16 text-center">
