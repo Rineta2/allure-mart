@@ -10,37 +10,7 @@ import { useFetchProducts } from '@/utils/section/products/useFetch'
 
 import Image from 'next/image'
 
-interface Product {
-    id: string;
-    category: {
-        name: string;
-    };
-    name: string;
-    content: string;
-    createdAt: Date;
-    description: string;
-    gender: {
-        name: string;
-    };
-    imageSlider: string[];
-    merek: {
-        name: string;
-    };
-    price: number;
-    slug: string;
-    stock: number;
-    thumbnail: string;
-    title: string;
-}
-
-interface BrandGroup {
-    count: number;
-    product: Product;
-}
-
-interface GroupedBrands {
-    [key: string]: BrandGroup;
-}
+import { GroupedBrands } from '@/utils/section/products/schema/category'
 
 export default function Category() {
     const { products, loading } = useFetchProducts();
@@ -49,10 +19,6 @@ export default function Category() {
     if (loading) {
         return <CategorySkeleton />
     }
-
-    // if (products.status !== 200) {
-    //     return <div>Error: {products.message}</div>;
-    // }
 
     // Group products by brand name with proper typing
     const groupedByBrand = products.data.reduce<GroupedBrands>((acc, product) => {
