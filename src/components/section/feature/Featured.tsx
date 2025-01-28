@@ -17,10 +17,6 @@ export default function Featured() {
         return <FeaturedSkeleton />
     }
 
-    if (featured.status !== 200) {
-        return <div>Error: {featured.message}</div>;
-    }
-
     return (
         <section id='populer'>
             <div className="container px-4">

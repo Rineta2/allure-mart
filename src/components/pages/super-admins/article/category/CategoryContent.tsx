@@ -11,46 +11,46 @@ import { TableRowSkeleton } from '@/components/helper/Skelaton';
 
 import Pagination from '@/components/helper/Pagination';
 
-import { Merek, FormData } from '@/components/pages/super-admins/products/merek/schema/Schema';
+import { CategoryArticle, FormData } from '@/components/pages/super-admins/article/category/schema/schema';
 
-export default function MerekContent() {
-    const [mereks, setMereks] = useState<Merek[]>([]);
+export default function CategoryContent() {
+    const [categories, setCategories] = useState<CategoryArticle[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState<FormData>({
         name: '',
     });
-    const [editingMerek, setEditingMerek] = useState<Merek | null>(null);
-    const [deletingMerek, setDeletingMerek] = useState<string | null>(null);
+    const [editingCategory, setEditingCategory] = useState<CategoryArticle | null>(null);
+    const [deletingCategory, setDeletingCategory] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
     // Add this filtered items calculation before the pagination calculation
-    const filteredMereks = mereks.filter(merek =>
-        merek.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCategories = categories.filter(category =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     // Update pagination calculations to use filteredMereks instead of mereks
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredMereks.slice(indexOfFirstItem, indexOfLastItem);
-    const totalPages = Math.ceil(filteredMereks.length / itemsPerPage);
+    const currentItems = filteredCategories.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
 
-    // Fetch categories
-    const fetchMereks = async () => {
+    // Rename the function from fetchMereks to fetchCategories
+    const fetchCategories = async () => {
         try {
             setLoading(true);
-            const querySnapshot = await getDocs(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string));
-            const mereksData = querySnapshot.docs.map(doc => ({
+            const querySnapshot = await getDocs(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_CATEGORIES_ARTICLES as string));
+            const categoriesData = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 createdAt: doc.data().createdAt?.toDate()
-            })) as Merek[];
+            })) as CategoryArticle[];
             // Sort categories by createdAt in descending order (newest first)
-            const sortedMereks = mereksData.sort((a, b) =>
+            const sortedCategories = categoriesData.sort((a, b) =>
                 b.createdAt.getTime() - a.createdAt.getTime()
             );
-            setMereks(sortedMereks);
+            setCategories(sortedCategories);
         } catch (error) {
             console.error('Error fetching categories:', error);
         } finally {
@@ -59,65 +59,65 @@ export default function MerekContent() {
     };
 
     // Add new category
-    const handleAddMerek = async (e: React.FormEvent) => {
+    const handleAddCategory = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setLoading(true);
             // Check for duplicate names
-            const isDuplicate = mereks.some(
-                merek => merek.name.toLowerCase() === formData.name.toLowerCase()
+            const isDuplicate = categories.some(
+                category => category.name.toLowerCase() === formData.name.toLowerCase()
             );
 
             if (isDuplicate) {
-                toast.error('Nama merek sudah ada, gunakan nama lain');
+                toast.error('Nama kategori sudah ada, gunakan nama lain');
                 return;
             }
 
-            await addDoc(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string), {
+            await addDoc(collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_CATEGORIES_ARTICLES as string), {
                 ...formData,
                 createdAt: new Date()
             });
             setFormData({ name: '' });
-            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
+            const modal = document.getElementById('category_modal') as HTMLDialogElement;
             modal?.close();
-            fetchMereks();
-            toast.success('Merek berhasil ditambahkan');
+            fetchCategories();
+            toast.success('Kategori berhasil ditambahkan');
         } catch (error) {
             console.error('Error adding gender:', error);
-            toast.error('Gagal menambahkan merek');
+            toast.error('Gagal menambahkan kategori');
         } finally {
             setLoading(false);
         }
     };
 
     // Add handleEditCategory function
-    const handleEditMerek = async (e: React.FormEvent) => {
+    const handleEditCategory = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editingMerek) return;
+        if (!editingCategory) return;
 
         try {
             setLoading(true);
             // Check for duplicate names, excluding the current merek being edited
-            const isDuplicate = mereks.some(
-                merek => merek.name.toLowerCase() === formData.name.toLowerCase()
-                    && merek.id !== editingMerek.id
+            const isDuplicate = categories.some(
+                category => category.name.toLowerCase() === formData.name.toLowerCase()
+                    && category.id !== editingCategory.id
             );
 
             if (isDuplicate) {
-                toast.error('Nama merek sudah ada, gunakan nama lain');
+                toast.error('Nama kategori sudah ada, gunakan nama lain');
                 return;
             }
 
-            await updateDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string, editingMerek.id), {
+            await updateDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_CATEGORIES_ARTICLES as string, editingCategory.id), {
                 name: formData.name,
                 updatedAt: new Date()
             });
             setFormData({ name: '' });
-            setEditingMerek(null);
-            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
+            setEditingCategory(null);
+            const modal = document.getElementById('category_modal') as HTMLDialogElement;
             modal?.close();
-            fetchMereks();
-            toast.success('Merek berhasil diperbarui');
+            fetchCategories();
+            toast.success('Kategori berhasil diperbarui');
         } catch (error) {
             console.error('Error updating category:', error);
             toast.error('Gagal memperbarui merek');
@@ -127,18 +127,18 @@ export default function MerekContent() {
     };
 
     // Update delete category function
-    const handleDeleteMerek = async (id: string) => {
+    const handleDeleteCategory = async (id: string) => {
         try {
             setLoading(true);
-            await deleteDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_MEREKS as string, id));
+            await deleteDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_CATEGORIES_ARTICLES as string, id));
             const modal = document.getElementById('delete_modal') as HTMLDialogElement;
             modal?.close();
-            setDeletingMerek(null);
-            fetchMereks();
-            toast.success('Merek berhasil dihapus');
+            setDeletingCategory(null);
+            fetchCategories();
+            toast.success('Kategori berhasil dihapus');
         } catch (error) {
-            console.error('Error deleting gender:', error);
-            toast.error('Gagal menghapus merek');
+            console.error('Error deleting category:', error);
+            toast.error('Gagal menghapus kategori');
         } finally {
             setLoading(false);
         }
@@ -150,7 +150,7 @@ export default function MerekContent() {
     };
 
     useEffect(() => {
-        fetchMereks();
+        fetchCategories();
     }, []);
 
     return (
@@ -160,8 +160,8 @@ export default function MerekContent() {
                 <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
                         <div className="flex flex-col gap-2">
-                            <h1 className='text-2xl font-bold text-gray-900'>Daftar Merek</h1>
-                            <p className='text-sm text-gray-500'>Daftar semua merek yang sudah terdaftar</p>
+                            <h1 className='text-2xl font-bold text-gray-900'>Daftar Kategori</h1>
+                            <p className='text-sm text-gray-500'>Daftar semua kategori yang sudah terdaftar</p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -169,7 +169,7 @@ export default function MerekContent() {
                                 <input
                                     type="text"
                                     className="input input-bordered w-full pl-10 bg-white border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                    placeholder="Cari Merek..."
+                                    placeholder="Cari Kategori..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -181,14 +181,14 @@ export default function MerekContent() {
                             <button
                                 className="btn bg-primary hover:bg-text text-white rounded-lg px-6 py-2 flex items-center gap-2 transition-all"
                                 onClick={() => {
-                                    const modal = document.getElementById('merek_modal') as HTMLDialogElement;
+                                    const modal = document.getElementById('category_modal') as HTMLDialogElement;
                                     modal?.showModal();
                                 }}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
-                                Tambah Merek
+                                Tambah Kategori
                             </button>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ export default function MerekContent() {
                             <thead>
                                 <tr className="bg-gray-50 border-b border-gray-100">
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">No</th>
-                                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Nama Merek</th>
+                                    <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Nama Kategori</th>
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Tanggal Dibuat</th>
                                     <th className="px-6 py-4 text-center text-sm font-medium text-gray-500">Aksi</th>
                                 </tr>
@@ -212,21 +212,21 @@ export default function MerekContent() {
                                         <TableRowSkeleton key={index} />
                                     ))
                                 ) : (
-                                    currentItems.map((merek, index) => (
-                                        <tr key={merek.id} className="hover:bg-gray-50 transition-colors">
+                                    currentItems.map((category, index) => (
+                                        <tr key={category.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 text-center text-sm text-gray-600">
                                                 {(currentPage - 1) * itemsPerPage + index + 1}
                                             </td>
-                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{merek.name}</td>
-                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{merek.createdAt.toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{category.name}</td>
+                                            <td className="px-6 py-4 text-center text-sm text-gray-600">{category.createdAt.toLocaleDateString()}</td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex gap-2 justify-center">
                                                     <button
                                                         className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                                         onClick={() => {
-                                                            setEditingMerek(merek);
-                                                            setFormData({ name: merek.name });
-                                                            const modal = document.getElementById('merek_modal') as HTMLDialogElement;
+                                                            setEditingCategory(category);
+                                                            setFormData({ name: category.name });
+                                                            const modal = document.getElementById('category_modal') as HTMLDialogElement;
                                                             modal?.showModal();
                                                         }}
                                                     >
@@ -236,7 +236,7 @@ export default function MerekContent() {
                                                     </button>
                                                     <button
                                                         onClick={() => {
-                                                            setDeletingMerek(merek.id);
+                                                            setDeletingCategory(category.id);
                                                             const modal = document.getElementById('delete_modal') as HTMLDialogElement;
                                                             modal?.showModal();
                                                         }}
@@ -264,16 +264,16 @@ export default function MerekContent() {
                 />
 
                 {/* Modals - modernized */}
-                <dialog id="merek_modal" className="modal">
+                <dialog id="category_modal" className="modal">
                     <div className="modal-box bg-white max-w-md mx-auto p-6 rounded-xl">
                         <h3 className="font-bold text-xl text-gray-900">
-                            {editingMerek ? 'Edit Merek' : 'Tambah Merek Baru'}
+                            {editingCategory ? 'Edit Kategori' : 'Tambah Kategori Baru'}
                         </h3>
 
-                        <form onSubmit={editingMerek ? handleEditMerek : handleAddMerek} className='flex flex-col mt-4'>
+                        <form onSubmit={editingCategory ? handleEditCategory : handleAddCategory} className='flex flex-col mt-4'>
                             <div className="form-control flex flex-col gap-2">
                                 <label className="flex flex-col gap-2">
-                                    <span className="label-text text-gray-700">Nama Merek</span>
+                                    <span className="label-text text-gray-700">Nama Kategori</span>
 
                                     <input
                                         type="text"
@@ -295,16 +295,16 @@ export default function MerekContent() {
                                             <span className="loading loading-spinner"></span>
                                             Loading...
                                         </>
-                                    ) : editingMerek ? 'Update' : 'Simpan'}
+                                    ) : editingCategory ? 'Update' : 'Simpan'}
                                 </button>
                                 <button
                                     type="button"
                                     className="flex-1 px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                     disabled={loading}
                                     onClick={() => {
-                                        setEditingMerek(null);
+                                        setEditingCategory(null);
                                         setFormData({ name: '' });
-                                        const modal = document.getElementById('merek_modal') as HTMLDialogElement;
+                                        const modal = document.getElementById('category_modal') as HTMLDialogElement;
                                         modal?.close();
                                     }}
                                 >
@@ -322,11 +322,11 @@ export default function MerekContent() {
                 <dialog id="delete_modal" className="modal">
                     <div className="modal-box bg-white p-6 rounded-xl">
                         <h3 className="font-bold text-xl text-gray-900 mb-4">Konfirmasi Hapus</h3>
-                        <p className="text-gray-600">Apakah Anda yakin ingin menghapus merek ini?</p>
+                        <p className="text-gray-600">Apakah Anda yakin ingin menghapus kategori ini?</p>
                         <div className="modal-action flex gap-3 mt-8">
                             <button
                                 className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
-                                onClick={() => deletingMerek && handleDeleteMerek(deletingMerek)}
+                                onClick={() => deletingCategory && handleDeleteCategory(deletingCategory)}
                                 disabled={loading}
                             >
                                 {loading ? (
@@ -339,7 +339,7 @@ export default function MerekContent() {
                             <button
                                 className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                 onClick={() => {
-                                    setDeletingMerek(null);
+                                    setDeletingCategory(null);
                                     const modal = document.getElementById('delete_modal') as HTMLDialogElement;
                                     modal?.close();
                                 }}

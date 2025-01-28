@@ -22,10 +22,6 @@ export default function OurProducts() {
         return <ProductsSkeleton />;
     }
 
-    if (products.status !== 200) {
-        return <div>Error: {products.message}</div>;
-    }
-
     const sortedProducts = Array.isArray(products.data)
         ? products.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         : [];

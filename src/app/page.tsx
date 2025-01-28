@@ -8,6 +8,8 @@ import OurProducts from '@/components/section/Our-Products/Our-Products'
 
 import Category from '@/components/section/category/Category'
 
+import Article from '@/components/section/article/Article'
+
 export default function page() {
   return (
     <Fragment>
@@ -15,6 +17,7 @@ export default function page() {
       <Featured />
       <OurProducts />
       <Category />
+      <Article />
     </Fragment>
   )
 }

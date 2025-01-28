@@ -6,6 +6,8 @@ import { MdFeaturedPlayList } from "react-icons/md";
 
 import { GiCardboardBoxClosed } from "react-icons/gi";
 
+import { GrArticle } from "react-icons/gr";
+
 export const menuItems = [
   {
     icon: FiHome,
@@ -46,6 +48,17 @@ export const menuItems = [
         label: "Merek",
         href: "/super-admins/dashboard/products/merek",
       },
+    ],
+  },
+
+  {
+    icon: GrArticle,
+    label: "Article",
+    href: "/super-admins/dashboard/article",
+    subItems: [
+      { label: "Daftar Article", href: "/super-admins/dashboard/article" },
+      { label: "Category", href: "/super-admins/dashboard/article/category" },
+      { label: "Tags", href: "/super-admins/dashboard/article/tags" },
     ],
   },
 
