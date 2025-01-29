@@ -211,19 +211,21 @@ export default function Header() {
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <Link href="/cart" className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center">
+                                                        <Link href="/cart" className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center" onClick={() => {
+                                                            setIsCartOpen(false);
+                                                        }}>
                                                             Cart
                                                         </Link>
 
-                                                        <button
+                                                        <Link
+                                                            href="/checkout"
                                                             className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200"
-
                                                             onClick={() => {
                                                                 setIsCartOpen(false);
                                                             }}
                                                         >
                                                             Checkout
-                                                        </button>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             </>

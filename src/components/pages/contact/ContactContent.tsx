@@ -28,7 +28,9 @@ import toast from 'react-hot-toast'
 
 import { GiTrophy } from "react-icons/gi";
 
-import { MdOutlineSecurity } from "react-icons/md";
+import { MdOutlineSecurity, MdOutlineSupportAgent } from "react-icons/md";
+
+import { CiDeliveryTruck } from 'react-icons/ci'
 
 // Add this schema outside the component
 const contactSchema = z.object({
@@ -221,43 +223,47 @@ export default function ContactContent() {
                 </div>
             </section>
 
-            <div className='relative h-[30vh]'>
-                <div className='absolute inset-0 bg-primary flex items-center justify-center gap-16'>
-                    <div className='flex gap-8'>
-                        <GiTrophy className='text-white w-16 h-16' />
-                        <div className='flex flex-col gap-2'>
-
-                            <h1 className='text-white text-4xl font-bold'>High Quality</h1>
-                            <p className='text-white text-sm'>crafted from top materials</p>
+            <div className='relative py-16 bg-primary'>
+                <div className='container mx-auto px-4'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8'>
+                        {/* High Quality */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <GiTrophy className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>High Quality</h3>
+                                <p className='text-white/80 text-sm'>crafted from top materials</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className='flex gap-8'>
-                        <MdOutlineSecurity className='text-white w-16 h-16' />
-                        <div className='flex flex-col gap-2'>
-                            <h1 className='text-white text-4xl font-bold'>Warranty Protection</h1>
-                            <p className='text-white text-sm'>Over 2 years</p>
+                        {/* Warranty Protection */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <MdOutlineSecurity className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>Warranty Protection</h3>
+                                <p className='text-white/80 text-sm'>Over 2 years</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className='flex gap-8'>
-                        <GiTrophy className='text-white w-16 h-16' />
-                        <div className='flex flex-col gap-2'>
-                            <h1 className='text-white text-4xl font-bold'>Free Shipping</h1>
-                            <p className='text-white text-sm'>Order over 150 $</p>
+                        {/* Free Shipping */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <CiDeliveryTruck className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>Free Shipping</h3>
+                                <p className='text-white/80 text-sm'>Order over 150 $</p>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className='flex gap-8'>
-                        <GiTrophy className='text-white w-16 h-16' />
-                        <div className='flex flex-col gap-2'>
-                            <h1 className='text-white text-4xl font-bold'>24 / 7 Support</h1>
-                            <p className='text-white text-sm'>24 / 7 Support</p>
+                        {/* 24/7 Support */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <MdOutlineSupportAgent className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>24 / 7 Support</h3>
+                                <p className='text-white/80 text-sm'>Dedicated support</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </>
     )
 }

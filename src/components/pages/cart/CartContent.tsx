@@ -12,6 +12,12 @@ import { IoIosArrowForward } from 'react-icons/io'
 
 import { useCart } from '@/components/router/auth/CartContext'
 
+import { GiTrophy } from 'react-icons/gi'
+
+import { MdOutlineSecurity, MdOutlineSupportAgent } from 'react-icons/md'
+
+import { CiDeliveryTruck } from "react-icons/ci";
+
 export default function CartContent() {
     const { cartItems, removeFromCart, updateQuantity } = useCart();
 
@@ -144,6 +150,48 @@ export default function CartContent() {
                                 <button className="w-full bg-[#2A2A2A] text-white py-3.5 rounded-lg hover:bg-black transition-all duration-300 font-medium text-lg mt-4">
                                     Proceed to Checkout
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className='relative py-16 bg-primary'>
+                <div className='container mx-auto px-4'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8'>
+                        {/* High Quality */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <GiTrophy className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>High Quality</h3>
+                                <p className='text-white/80 text-sm'>crafted from top materials</p>
+                            </div>
+                        </div>
+
+                        {/* Warranty Protection */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <MdOutlineSecurity className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>Warranty Protection</h3>
+                                <p className='text-white/80 text-sm'>Over 2 years</p>
+                            </div>
+                        </div>
+
+                        {/* Free Shipping */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <CiDeliveryTruck className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>Free Shipping</h3>
+                                <p className='text-white/80 text-sm'>Order over 150 $</p>
+                            </div>
+                        </div>
+
+                        {/* 24/7 Support */}
+                        <div className='flex items-center gap-4 p-4'>
+                            <MdOutlineSupportAgent className='text-white w-12 h-12 flex-shrink-0' />
+                            <div className='flex flex-col'>
+                                <h3 className='text-white text-xl lg:text-2xl font-bold'>24 / 7 Support</h3>
+                                <p className='text-white/80 text-sm'>Dedicated support</p>
                             </div>
                         </div>
                     </div>
