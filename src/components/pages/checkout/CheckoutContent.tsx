@@ -27,13 +27,36 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { useForm } from 'react-hook-form';
 
-// Define Zod schema
+import Select from 'react-select';
+
+import * as opencage from 'opencage-api-client';
+
+type LocationOption = {
+    value: string;
+    label: string;
+    details?: {
+        city?: string;
+        state?: string;
+        postcode?: string;
+        country?: string;
+    };
+};
+
 const checkoutSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters'),
     company: z.string().optional(),
-    country: z.string(),
-    address: z.string().min(5, 'Address must be at least 5 characters'),
+    address: z.object({
+        label: z.string(),
+        value: z.string(),
+        details: z.object({
+            city: z.string().optional(),
+            state: z.string().optional(),
+            postcode: z.string().optional(),
+            country: z.string().optional(),
+        }).optional(),
+    }),
+    addressDetail: z.string().min(1, 'Detail address is required'),
     city: z.string().min(2, 'City must be at least 2 characters'),
     province: z.string(),
     zipCode: z.string().min(5, 'ZIP code must be at least 5 characters'),
@@ -48,6 +71,26 @@ const checkoutSchema = z.object({
 // Type inference
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
+// Add interface for geocoding result
+interface GeocodingComponent {
+    city?: string;
+    town?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+}
+
+interface GeocodingResult {
+    formatted: string;
+    components: GeocodingComponent;
+}
+
+// Tambahkan interface untuk options
+interface ProvinceOption {
+    value: string;
+    label: string;
+}
+
 export default function CheckoutContent() {
     const { cartItems, totalItems } = useCart();
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -56,15 +99,62 @@ export default function CheckoutContent() {
         register,
         handleSubmit,
         formState: { errors },
-        reset
+        reset,
+        setValue,
+        watch
     } = useForm<CheckoutFormData>({
         resolver: zodResolver(checkoutSchema),
         defaultValues: {
-            country: 'sri-lanka',
             province: 'western',
             paymentMethod: 'bank-transfer'
         }
     });
+
+    const [locationOptions, setLocationOptions] = React.useState<LocationOption[]>([]);
+    const [isSearching, setIsSearching] = React.useState(false);
+
+    const [provinceOptions] = React.useState<ProvinceOption[]>([
+        { value: 'jawa-barat', label: 'Jawa Barat' },
+        { value: 'jawa-tengah', label: 'Jawa Tengah' },
+        { value: 'jawa-timur', label: 'Jawa Timur' },
+    ]);
+
+    const searchLocation = async (inputValue: string) => {
+        if (!inputValue || inputValue.length < 3) return;
+
+        setIsSearching(true);
+        try {
+            const result = await opencage.geocode({
+                q: inputValue,
+                key: process.env.NEXT_PUBLIC_OPENCAGE_API_KEY as string,
+            });
+
+            const options = result.results.map((item: GeocodingResult) => ({
+                value: item.formatted,
+                label: item.formatted,
+                details: {
+                    city: item.components.city || item.components.town,
+                    state: item.components.state,
+                    postcode: item.components.postcode,
+                    country: item.components.country,
+                },
+            }));
+
+            setLocationOptions(options);
+        } catch (error) {
+            console.error('Error fetching locations:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    // Create debounced search function using lodash debounce
+    const debouncedSearch = React.useCallback(
+        (value: string) => {
+            searchLocation(value);
+        },
+        []  // Empty dependency array since searchLocation is defined inside component
+    );
 
     const onSubmit = async (data: CheckoutFormData) => {
         try {
@@ -73,17 +163,34 @@ export default function CheckoutContent() {
             // Format order ID with padding zeros
             const formattedOrderId = `ORD${docRef.id.slice(-6).padStart(6, '0')}`;
 
-            // Menyimpan data transaksi ke Firebase dengan orderId
+            // Updated order data structure to match the form
             const orderData = {
                 orderId: formattedOrderId,
-                ...data,
-                items: cartItems,
-                totalAmount: total,
+                customerInfo: {
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    company: data.company || null,
+                    phone: data.phone,
+                    email: data.email
+                },
+                shippingAddress: {
+                    address: data.address.value,
+                    addressDetail: data.addressDetail,
+                    city: data.city,
+                    province: data.province,
+                    zipCode: data.zipCode,
+                    additionalInfo: data.additionalInfo || null
+                },
+                orderDetails: {
+                    items: cartItems,
+                    totalAmount: total,
+                    paymentMethod: data.paymentMethod
+                },
                 orderDate: new Date(),
                 status: 'pending'
             };
 
-            // Update document dengan semua data termasuk orderId
+            // Update document with all data including orderId
             await updateDoc(docRef, orderData);
 
             // Membuat pesan WhatsApp
@@ -175,28 +282,53 @@ export default function CheckoutContent() {
                                         {...register('company')}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">Country</label>
-                                    <select
-                                        className={`w-full p-3 border ${errors.country ? 'border-red-500' : 'border-border/40'} rounded-xl`}
-                                        {...register('country')}
-                                    >
-                                        <option value="sri-lanka">Sri Lanka</option>
-                                    </select>
-                                    {errors.country && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.country.message}</p>
-                                    )}
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium text-gray-700">Street Address</label>
-                                    <input
-                                        type="text"
-                                        className={`w-full p-3 border ${errors.address ? 'border-red-500' : 'border-border/40'} rounded-xl`}
-                                        {...register('address')}
-                                    />
-                                    {errors.address && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
-                                    )}
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">Area Location</label>
+                                        <Select
+                                            className="rounded-xl"
+                                            classNames={{
+                                                control: () =>
+                                                    `!rounded-xl !border ${errors.address ? '!border-red-500' : '!border-border/40'}`,
+                                            }}
+                                            options={locationOptions}
+                                            isLoading={isSearching}
+                                            onInputChange={(value) => debouncedSearch(value)}
+                                            onChange={(selectedOption) => {
+                                                if (selectedOption) {
+                                                    const option = selectedOption as LocationOption;
+                                                    setValue('address', option);
+                                                    if (option.details) {
+                                                        setValue('city', option.details.city || '');
+                                                        const matchingProvince = provinceOptions.find(
+                                                            p => p.label.toLowerCase() === option.details?.state?.toLowerCase()
+                                                        );
+                                                        if (matchingProvince) {
+                                                            setValue('province', matchingProvince.value);
+                                                        }
+                                                        setValue('zipCode', option.details.postcode || '');
+                                                    }
+                                                }
+                                            }}
+                                            placeholder="Search your area..."
+                                        />
+                                        {errors.address && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">Detail Address</label>
+                                        <textarea
+                                            className={`w-full p-3 border ${errors.addressDetail ? 'border-red-500' : 'border-border/40'} rounded-xl`}
+                                            rows={3}
+                                            placeholder="Enter detailed address (RT/RW, House number, Street name, Landmarks, etc)"
+                                            {...register('addressDetail')}
+                                        />
+                                        {errors.addressDetail && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.addressDetail.message}</p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">Town / City</label>
@@ -211,12 +343,19 @@ export default function CheckoutContent() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="block text-sm font-medium text-gray-700">Province</label>
-                                    <select
-                                        className={`w-full p-3 border ${errors.province ? 'border-red-500' : 'border-border/40'} rounded-xl`}
-                                        {...register('province')}
-                                    >
-                                        <option value="western">Western Province</option>
-                                    </select>
+                                    <Select
+                                        className="rounded-xl"
+                                        classNames={{
+                                            control: () => "!rounded-xl !border !border-border/40",
+                                        }}
+                                        options={provinceOptions}
+                                        value={provinceOptions.find(option => option.value === watch('province'))}
+                                        onChange={(option) => {
+                                            if (option) {
+                                                setValue('province', option.value);
+                                            }
+                                        }}
+                                    />
                                     {errors.province && (
                                         <p className="text-red-500 text-sm mt-1">{errors.province.message}</p>
                                     )}
