@@ -183,12 +183,14 @@ export default function Header() {
                                                                         -
                                                                     </button>
                                                                     <span>{item.quantity}</span>
+
                                                                     <button
                                                                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                                         className="p-1 hover:bg-accent rounded"
                                                                     >
                                                                         +
                                                                     </button>
+
                                                                     <button
                                                                         onClick={() => removeFromCart(item.id)}
                                                                         className="ml-auto text-red-500 hover:text-red-600"
@@ -207,17 +209,25 @@ export default function Header() {
                                                             ${cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toLocaleString()}
                                                         </span>
                                                     </div>
-                                                    <button
-                                                        className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200"
-                                                        onClick={() => {
-                                                            setIsCartOpen(false);
-                                                            // Add checkout logic here
-                                                        }}
-                                                    >
-                                                        Checkout
-                                                    </button>
+
+                                                    <div className="flex items-center gap-2">
+                                                        <Link href="/cart" className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center">
+                                                            Cart
+                                                        </Link>
+
+                                                        <button
+                                                            className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200"
+
+                                                            onClick={() => {
+                                                                setIsCartOpen(false);
+                                                            }}
+                                                        >
+                                                            Checkout
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </>
+
                                         )}
                                     </div>
                                 </div>
