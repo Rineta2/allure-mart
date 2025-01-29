@@ -10,8 +10,6 @@ import ProductsSkeleton from "@/components/section/Our-Products/ProductsSkelaton
 
 import Image from "next/image";
 
-import { createSlug } from "@/components/helper/stringSlug"
-
 export default function OurProducts() {
     const { addToCart } = useCart();
     const { products, loading } = useFetchProducts();
@@ -84,7 +82,7 @@ export default function OurProducts() {
                                                     </svg>
                                                 </button>
 
-                                                <Link href={`/shop/${createSlug(item.category.name)}/${item.slug}`}
+                                                <Link href={`/shop/${item.slug}`}
                                                     className="px-4 py-2 bg-white text-gray-900 rounded-lg font-medium
                                                     hover:bg-gray-100 transform translate-y-4 group-hover:translate-y-0
                                                     transition-transform duration-300 flex items-center gap-2"
