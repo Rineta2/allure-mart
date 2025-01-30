@@ -16,9 +16,13 @@ import ProductTabs from '@/components/pages/shop/[slug]/hooks/ProductTabs'
 
 import RelatedProducts from '@/components/pages/shop/[slug]/hooks/RelatedProducts'
 
+import ProductNotFound from '@/components/pages/shop/[slug]/ProductNotFound'
+
 export default function ShopDetails({ slug }: { slug: string }) {
     const { products, loading } = useFetchProducts()
+
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0)
+
     const [activeTab, setActiveTab] = React.useState('description')
 
     if (loading) {
@@ -28,11 +32,7 @@ export default function ShopDetails({ slug }: { slug: string }) {
     const product = products.data.find((p) => p.slug === slug)
 
     if (!product) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <h1 className="text-2xl font-bold">Product not found</h1>
-            </div>
-        )
+        return <ProductNotFound />
     }
 
     const shareUrl = `${process.env.NEXT_PUBLIC_URL}/shop/${product?.slug}`

@@ -8,6 +8,8 @@ import ArticleSkeleton from '@/components/section/article/ArticleSkelaton';
 
 import Image from 'next/image';
 
+import Link from 'next/link';
+
 export default function Article() {
     const { articles, loading } = useFetchArticles();
 
@@ -51,7 +53,7 @@ export default function Article() {
                     <>
                         {/* Featured Article */}
                         <article className="bg-white rounded-2xl shadow-lg overflow-hidden mb-16 transition-transform hover:scale-[1.02] duration-300">
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <Link href={`/article/${featuredArticle.slug}`} className="grid md:grid-cols-2 gap-4">
                                 <div className="relative">
                                     <Image
                                         src={featuredArticle.imageUrl}
@@ -94,7 +96,7 @@ export default function Article() {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         </article>
 
                         {/* Category Filter Controls */}

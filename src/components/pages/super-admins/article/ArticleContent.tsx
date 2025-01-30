@@ -96,18 +96,17 @@ export default function ArticleContent() {
 
         try {
             let imageUrl = selectedArticle?.imageUrl || ''
+            let processedContent = formData.content
 
-            // Check if formData.image exists and is a File
+            // Handle featured image
             const imageFile = formData.image
             if (imageFile && imageFile instanceof File) {
-                // Convert File to base64
                 const reader = new FileReader()
                 const base64Image = await new Promise<string>((resolve) => {
                     reader.onload = () => resolve(reader.result as string)
                     reader.readAsDataURL(imageFile)
                 })
 
-                // Upload to Imagekit
                 const uploadResponse = await imagekitInstance.upload({
                     file: base64Image,
                     fileName: `article-${Date.now()}`,
@@ -116,9 +115,30 @@ export default function ArticleContent() {
                 imageUrl = uploadResponse.url
             }
 
+            // Handle images in rich text content
+            if (formData.content) {
+                const imgRegex = /data:image\/[^;]+;base64[^"]+/g
+                const base64Images = formData.content.match(imgRegex) || []
+
+                // Upload each base64 image found in content
+                for (const base64Image of base64Images) {
+                    try {
+                        const uploadResponse = await imagekitInstance.upload({
+                            file: base64Image,
+                            fileName: `content-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+                            folder: '/articles/content'
+                        })
+                        // Replace base64 image with uploaded URL in content
+                        processedContent = processedContent.replace(base64Image, uploadResponse.url)
+                    } catch (error) {
+                        console.error('Error uploading content image:', error)
+                    }
+                }
+            }
+
             const articleData = {
                 title: formData.title,
-                content: formData.content,
+                content: processedContent,
                 description: formData.description,
                 imageUrl,
                 categoryName: formData.categoryName,

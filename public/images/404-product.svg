@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+    <style>
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+    </style>
+
+    <!-- Background Elements -->
+    <circle cx="250" cy="250" r="200" fill="#f3f4f6" opacity="0.5" />
+    <path d="M150,150 Q250,50 350,150" stroke="#e5e7eb" fill="none" stroke-width="2" />
+
+    <!-- Shopping Cart -->
+    <g class="animate-float">
+        <path d="M150,200 L350,200 L320,300 L180,300 Z" fill="#4f46e5" />
+        <circle cx="200" cy="320" r="15" fill="#1f2937" />
+        <circle cx="300" cy="320" r="15" fill="#1f2937" />
+
+        <!-- Question Mark -->
+        <text x="250" y="260" font-size="60" fill="white" text-anchor="middle">?</text>
+    </g>
+
+    <!-- Decorative Elements -->
+    <circle cx="150" cy="150" r="10" fill="#ef4444" />
+    <circle cx="350" cy="150" r="10" fill="#10b981" />
+    <circle cx="250" cy="100" r="8" fill="#f59e0b" />
+</svg>

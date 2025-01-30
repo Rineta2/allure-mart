@@ -4,30 +4,30 @@ import { db } from "@/utils/firebase";
 
 import { collection, getDocs, query, where } from "firebase/firestore";
 
-export interface Product {
+export interface Article {
   title: string;
   description: string;
   thumbnail: string[];
   slug: string;
 }
 
-async function getProduct(slug: string): Promise<Product | null> {
+async function getArticle(slug: string): Promise<Article | null> {
   try {
-    const productsRef = collection(
+    const articleRef = collection(
       db,
-      process.env.NEXT_PUBLIC_COLLECTIONS_PRODUCTS as string
+      process.env.NEXT_PUBLIC_COLLECTIONS_ARTICLES as string
     );
-    const q = query(productsRef, where("slug", "==", slug));
+    const q = query(articleRef, where("slug", "==", slug));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
       return null;
     }
 
-    const productData = querySnapshot.docs[0].data() as Product;
-    return productData;
+    const articleData = querySnapshot.docs[0].data() as Article;
+    return articleData;
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("Error fetching Article:", error);
     return null;
   }
 }
@@ -37,7 +37,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await getProduct(params.slug);
+  const product = await getArticle(params.slug);
 
   return {
     title: product ? `${product.title}` : "Product Not Found",
