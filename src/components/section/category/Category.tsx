@@ -20,7 +20,6 @@ export default function Category() {
         return <CategorySkeleton />
     }
 
-    // Group products by brand name with proper typing
     const groupedByBrand = products.data.reduce<GroupedBrands>((acc, product) => {
         const brandName = product.merek.name;
         if (!acc[brandName]) {
@@ -34,13 +33,11 @@ export default function Category() {
         return acc;
     }, {});
 
-    // Convert to array for easier mapping with proper typing
     const brandProducts = Object.entries(groupedByBrand).map(([, data]) => ({
         ...data.product,
         brandCount: data.count
     }));
 
-    // Update slide navigation to use brandProducts length
     const nextSlide = () => {
         setCurrentSlide((prev) => {
             const newIndex = prev + 1;

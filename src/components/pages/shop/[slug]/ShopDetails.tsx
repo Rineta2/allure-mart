@@ -2,8 +2,6 @@
 
 import React from 'react'
 
-import { useParams } from 'next/navigation'
-
 import { useFetchProducts } from '@/utils/section/products/useFetch'
 
 import ShopDetailsSkeleton from '@/components/pages/shop/[slug]/ShopDetailsSkelaton'
@@ -18,8 +16,7 @@ import ProductTabs from '@/components/pages/shop/[slug]/hooks/ProductTabs'
 
 import RelatedProducts from '@/components/pages/shop/[slug]/hooks/RelatedProducts'
 
-export default function ShopDetails() {
-    const params = useParams()
+export default function ShopDetails({ slug }: { slug: string }) {
     const { products, loading } = useFetchProducts()
     const [currentImageIndex, setCurrentImageIndex] = React.useState(0)
     const [activeTab, setActiveTab] = React.useState('description')
@@ -28,7 +25,7 @@ export default function ShopDetails() {
         return <ShopDetailsSkeleton />
     }
 
-    const product = products.data.find((p) => p.slug === params.slug)
+    const product = products.data.find((p) => p.slug === slug)
 
     if (!product) {
         return (

@@ -32,7 +32,6 @@ import { MdOutlineSecurity, MdOutlineSupportAgent } from "react-icons/md";
 
 import { CiDeliveryTruck } from 'react-icons/ci'
 
-// Add this schema outside the component
 const contactSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').optional(),
     email: z.string().email('Please enter a valid email').optional(),
@@ -40,7 +39,6 @@ const contactSchema = z.object({
     message: z.string().min(10, 'Message must be at least 10 characters').optional(),
 })
 
-// Type for our form data
 type ContactFormData = z.infer<typeof contactSchema>
 
 export default function ContactContent() {

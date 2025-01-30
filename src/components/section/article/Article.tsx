@@ -21,12 +21,10 @@ export default function Article() {
         return <ArticleSkeleton />
     }
 
-    // Sort articles by createdAt in descending order (newest first)
     const sortedArticles = [...articles.data].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
-    // Get unique categories
     const categories = ['all', ...new Set(sortedArticles.map(article => article.categoryName))];
 
     // Filter articles based on category only
@@ -34,10 +32,8 @@ export default function Article() {
         return selectedCategory === 'all' || article.categoryName === selectedCategory;
     });
 
-    // Get the first article as featured
     const featuredArticle = filteredArticles[0];
 
-    // Get regular articles with limit
     const regularArticles = filteredArticles.slice(1);
 
     const displayedArticles = showAll ? regularArticles : regularArticles.slice(0, ARTICLES_PER_PAGE - 1);

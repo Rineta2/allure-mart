@@ -31,7 +31,6 @@ export default function ShopContent() {
         return <ProductsSkeleton />;
     }
 
-    // Sort products based on selected sorting option
     const sortedProducts = [...products.data].sort((a, b) => {
         switch (sortBy) {
             case 'price-low':
@@ -43,20 +42,16 @@ export default function ShopContent() {
         }
     });
 
-    // Filter products based on selected category
     const filteredProducts = selectedCategory === 'all'
         ? sortedProducts
         : sortedProducts.filter(product => product.merek.name === selectedCategory);
 
-    // Calculate pagination
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
-    // Get unique categories
     const categories = ['all', ...new Set(products.data.map(product => product.merek.name))];
 
-    // Add this function to handle page changes
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });

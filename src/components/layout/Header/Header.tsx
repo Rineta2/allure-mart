@@ -219,7 +219,7 @@ export default function Header() {
 
                                                         <Link
                                                             href="/checkout"
-                                                            className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200"
+                                                            className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 grid place-items-center"
                                                             onClick={() => {
                                                                 setIsCartOpen(false);
                                                             }}
