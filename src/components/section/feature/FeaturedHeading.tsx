@@ -2,12 +2,14 @@ import React from 'react'
 
 export default function FeaturedHeading() {
     return (
-        <div className="flex flex-col items-center justify-center gap-3 mb-12 md:mb-16">
-            <h3 className='text-3xl md:text-4xl font-bold text-center tracking-tight'>
+        <div className="mb-16 text-center">
+            <span className="text-sm md:text-base text-primary font-semibold uppercase tracking-wider">
                 Produk Terlaris
-            </h3>
-
-            <p className='text-gray-600 text-center text-sm md:text-base'>
+            </span>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mt-3 mb-4">
+                Produk Terlaris
+            </h1>
+            <p className="text-gray-600 max-w-2xl mx-auto text-sm md:text-base">
                 Temukan koleksi produk terlaris kami yang paling diminati! Kualitas terjamin dengan harga terbaik untuk Anda.
             </p>
         </div>

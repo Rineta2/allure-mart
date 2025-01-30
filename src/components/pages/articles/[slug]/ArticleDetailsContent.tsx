@@ -83,9 +83,9 @@ export default function ArticleDetailsContent({ slug }: { slug: string }) {
                             <div className="prose prose-lg md:prose-xl max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-a:font-medium prose-a:transition-all prose-img:rounded-2xl prose-img:shadow-lg prose-blockquote:border-none prose-blockquote:p-8 md:prose-blockquote:p-10 prose-blockquote:bg-gradient-to-br prose-blockquote:from-white prose-blockquote:to-indigo-50/80 prose-blockquote:rounded-2xl prose-blockquote:shadow-sm hover:prose-blockquote:shadow-md prose-blockquote:transition-all prose-blockquote:duration-300 prose-blockquote:backdrop-blur-sm prose-blockquote:border prose-blockquote:border-indigo-100">
                                 <article className="space-y-16">
                                     {/* Split content into parts and render them */}
-                                    {article.content.split('<ol>').map((part, index) => (
-                                        <React.Fragment key={index}>
-                                            {index === 0 ? (
+                                    {article.content.split('<ol>').map((part, partIndex) => (
+                                        <React.Fragment key={`content-part-${partIndex}`}>
+                                            {partIndex === 0 ? (
                                                 <div
                                                     dangerouslySetInnerHTML={{ __html: part }}
                                                     className="text-xl leading-relaxed text-gray-700 flex flex-col gap-6"
@@ -95,7 +95,7 @@ export default function ArticleDetailsContent({ slug }: { slug: string }) {
                                                     <ol className="list-decimal list-outside space-y-12 pl-8">
                                                         {part
                                                             .match(/<li[^>]*>(.*?)<\/li>/g)
-                                                            ?.map((item, index) => {
+                                                            ?.map((item, itemIndex) => {
                                                                 const content = item
                                                                     .replace(/<\/?li[^>]*>/g, '')
                                                                     .replace(/<span[^>]*>[^<]*<\/span>/g, '')
@@ -106,7 +106,7 @@ export default function ArticleDetailsContent({ slug }: { slug: string }) {
                                                                 const [title, ...description] = content[1].split('</strong>')
 
                                                                 return (
-                                                                    <li key={index} className="pl-2">
+                                                                    <li key={`list-item-${partIndex}-${itemIndex}`} className="pl-2">
                                                                         <h3 className="text-2xl font-bold text-gray-900 mb-4">
                                                                             {title}
                                                                         </h3>
@@ -150,10 +150,10 @@ export default function ArticleDetailsContent({ slug }: { slug: string }) {
                                     Related Articles
                                 </h2>
                                 <div className="space-y-6">
-                                    {relatedArticles.map((relatedArticle) => (
+                                    {relatedArticles.map((relatedArticle, index) => (
                                         <Link
-                                            key={relatedArticle.slug}
-                                            href={`/articles/${relatedArticle.slug}`}
+                                            key={`related-article-${relatedArticle.slug}-${index}`}
+                                            href={`/article/${relatedArticle.slug}`}
                                             className="group flex gap-6 hover:bg-gray-50 p-4 rounded-xl transition-all duration-300 border border-transparent hover:border-gray-200"
                                         >
                                             <Image

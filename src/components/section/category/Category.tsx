@@ -57,8 +57,17 @@ export default function Category() {
     };
 
     return (
-        <section className="py-8 lg:py-20 sm:px-6">
-            <div className="container mx-auto">
+        <section>
+            <div className="container">
+                <div className="mb-16 text-center">
+                    <span className="text-sm md:text-base text-primary font-semibold uppercase tracking-wider">
+                        Merek Terbaru
+                    </span>
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mt-3 mb-4">
+                        Temukan Merek Terbaru Kami
+                    </h1>
+                </div>
+
                 <div className="bg-white/80 backdrop-blur-lg rounded-[20px] lg:rounded-[32px] shadow-2xl p-4 sm:p-6 lg:p-14 border border-gray-100">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                         <div className="max-w-xl space-y-6 lg:space-y-8">
@@ -67,10 +76,10 @@ export default function Category() {
                                     Discover
                                 </span>
                                 <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 bg-clip-text text-transparent">
-                                    50+ Beautiful rooms inspiration
+                                    Merek Terbaru Kami
                                 </h1>
                                 <p className="text-gray-600 text-base lg:text-lg leading-relaxed">
-                                    Our designer already made a lot of beautiful prototipe of rooms that inspire you
+                                    Kami telah menyediakan koleksi produk terbaru kami yang paling diminati! Kualitas terjamin dengan harga terbaik untuk Anda.
                                 </p>
                             </div>
                             <button className="group w-full sm:w-auto px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-[#AD8E70] to-[#97785C] text-white rounded-xl lg:rounded-2xl hover:shadow-xl hover:shadow-[#AD8E70]/20 transform hover:-translate-y-1 transition-all duration-300 font-medium">

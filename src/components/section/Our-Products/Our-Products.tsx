@@ -26,8 +26,7 @@ export default function OurProducts() {
 
     return (
         <section>
-            <div className="container px-0 sm:px-4 mx-auto">
-
+            <div className="container">
                 <div className="mb-16 text-center">
                     <span className="text-sm md:text-base text-primary font-semibold uppercase tracking-wider">
                         Stock Terbaru
