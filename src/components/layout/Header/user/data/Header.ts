@@ -8,31 +8,31 @@ export const menuItems = [
   {
     icon: FiHome,
     label: "Dashboard",
-    href: "/users/dashboard",
+    href: "/user/dashboard",
   },
 
   {
     icon: RiUserFill,
     label: "Profile",
-    href: "/users/dashboard/profile",
+    href: "/user/dashboard/profile",
     subItems: [
-      { label: "Profile", href: "/users/dashboard/profile" },
-      { label: "Bank & Kartu", href: "/users/dashboard/profile/payment" },
-      { label: "Alamat", href: "/users/dashboard/profile/address" },
-      { label: "Pengaturan Privasi", href: "/users/dashboard/profile/privacy" },
+      { label: "Profile", href: "/user/dashboard/profile" },
+      { label: "Bank & Kartu", href: "/user/dashboard/profile/payment" },
+      { label: "Alamat", href: "/user/dashboard/profile/address" },
+      { label: "Pengaturan Privasi", href: "/user/dashboard/profile/privacy" },
     ],
   },
 
   {
     icon: MdFeaturedPlayList,
     label: "Pesanan",
-    href: "/users/dashboard/order",
+    href: "/user/dashboard/order",
     subItems: [
-      { label: "Daftar Pesanan", href: "/users/dashboard/order" },
-      { label: "Belum Dibayar", href: "/users/dashboard/order/unpaid" },
-      { label: "Dikirim", href: "/users/dashboard/order/shipped" },
-      { label: "Selesai", href: "/users/dashboard/order/completed" },
-      { label: "Dibatalkan", href: "/users/dashboard/order/canceled" },
+      { label: "Daftar Pesanan", href: "/user/dashboard/order" },
+      { label: "Belum Dibayar", href: "/user/dashboard/order/unpaid" },
+      { label: "Dikirim", href: "/user/dashboard/order/shipped" },
+      { label: "Selesai", href: "/user/dashboard/order/completed" },
+      { label: "Dibatalkan", href: "/user/dashboard/order/canceled" },
     ],
   },
 
