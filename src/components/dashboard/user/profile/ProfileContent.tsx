@@ -20,21 +20,7 @@ import { id } from 'date-fns/locale';
 
 import ProfileSkelaton from '@/components/dashboard/user/profile/ProfileSkelaton';
 
-interface UserProfile {
-    createdAt: {
-        seconds: number;
-        nanoseconds: number;
-    };
-    displayName: string;
-    email: string;
-    isActive: boolean;
-    photoURL: string;
-    uid: string;
-    updatedAt: string;
-    phoneNumber?: string;
-    birthDate?: string;
-    gender?: 'male' | 'female';
-}
+import { UserProfile } from "@/components/dashboard/user/profile/schema/schema"
 
 export default function ProfileContent() {
     const { user } = useAuth();
@@ -172,12 +158,14 @@ export default function ProfileContent() {
     }
 
     return (
-        <section className="py-12">
-            <div className="container">
-                <div className="flex justify-between items-center mb-8">
+        <section className="py-8 sm:py-12 bg-gray-50 min-h-screen">
+            <div className="container px-0 sm:px-6 mx-auto max-w-7xl">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div className="flex flex-col gap-2">
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Profil Saya</h1>
-                        <p className="text-sm text-gray-500">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                            Profil Saya
+                        </h1>
+                        <p className="text-sm text-gray-600">
                             Kelola informasi profil Anda untuk mengontrol, melindungi dan mengamankan akun
                         </p>
                     </div>
@@ -185,26 +173,28 @@ export default function ProfileContent() {
                     {!isEditing && (
                         <button
                             onClick={handleEdit}
-                            className="mt-4 sm:mt-0 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                            transition-colors duration-200 font-medium shadow-sm hover:shadow-md"
+                            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-xl 
+                            hover:bg-blue-700 transition-all duration-300 font-medium shadow-sm 
+                            hover:shadow-blue-100 hover:shadow-lg active:transform active:scale-95"
                         >
                             Edit Profil
                         </button>
                     )}
                 </div>
 
-                <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+                <div className="bg-white rounded-3xl shadow-xl shadow-gray-100/50 p-6 sm:p-8">
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Left side - Profile Image */}
                             <div className="flex flex-col items-center space-y-6 order-1 lg:order-2">
-                                <div className="relative w-40 h-40 sm:w-48 sm:h-48">
+                                <div className="relative w-40 h-40 sm:w-48 sm:h-48 group">
                                     <Image
                                         src={profile.photoURL || '/images/default-profile.png'}
                                         alt="Profile"
                                         width={500}
                                         height={500}
-                                        className="rounded-2xl object-cover shadow-md w-full h-full"
+                                        className="rounded-3xl object-cover shadow-lg w-full h-full 
+                                        transition-transform duration-300 group-hover:scale-105"
                                     />
                                 </div>
                                 <div className="text-center w-full">
@@ -219,8 +209,9 @@ export default function ProfileContent() {
                                     <label
                                         htmlFor="profile-image-upload"
                                         className="inline-block cursor-pointer px-6 py-2.5 bg-gray-50 text-gray-700 
-                                    rounded-lg hover:bg-gray-100 transition-colors duration-200 font-medium 
-                                    border border-gray-200 hover:border-gray-300 shadow-sm"
+                                        rounded-xl hover:bg-gray-100 transition-all duration-300 font-medium 
+                                        border border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md
+                                        active:transform active:scale-95"
                                     >
                                         {uploadingImage ? 'Mengupload...' : 'Ubah Foto'}
                                     </label>
@@ -235,8 +226,9 @@ export default function ProfileContent() {
                             {/* Right side - Form Fields */}
                             <div className="lg:col-span-2 order-2 lg:order-1">
                                 <div className="space-y-6">
-                                    {/* Form fields with updated styling */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    {/* Form fields */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Nama</label>
                                         <div className="sm:col-span-2">
                                             {isEditing ? (
@@ -245,23 +237,26 @@ export default function ProfileContent() {
                                                     name="displayName"
                                                     value={editedProfile?.displayName || ''}
                                                     onChange={handleChange}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 
-                                                focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 
+                                                    focus:ring-blue-500 focus:border-blue-500 transition-all duration-200
+                                                    hover:border-blue-400"
                                                 />
                                             ) : (
-                                                <p className="text-gray-800">{profile.displayName}</p>
+                                                <p className="text-gray-800 font-medium">{profile.displayName}</p>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Email</label>
                                         <div className="sm:col-span-2">
                                             <p className="text-gray-800">{profile.email}</p>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Nomor Telepon</label>
                                         <div className="sm:col-span-2">
                                             {isEditing ? (
@@ -270,8 +265,9 @@ export default function ProfileContent() {
                                                     name="phoneNumber"
                                                     value={editedProfile?.phoneNumber || ''}
                                                     onChange={handleChange}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 
-                                                focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 
+                                                    focus:ring-blue-500 focus:border-blue-500 transition-all duration-200
+                                                    hover:border-blue-400"
                                                     placeholder="Contoh: 08123456789"
                                                 />
                                             ) : (
@@ -280,7 +276,8 @@ export default function ProfileContent() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Tanggal Lahir</label>
                                         <div className="sm:col-span-2">
                                             {isEditing ? (
@@ -289,8 +286,9 @@ export default function ProfileContent() {
                                                     name="birthDate"
                                                     value={editedProfile?.birthDate || ''}
                                                     onChange={handleChange}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 
-                                                focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 
+                                                    focus:ring-blue-500 focus:border-blue-500 transition-all duration-200
+                                                    hover:border-blue-400"
                                                 />
                                             ) : (
                                                 <p className="text-gray-800">
@@ -302,7 +300,8 @@ export default function ProfileContent() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Jenis Kelamin</label>
                                         <div className="sm:col-span-2">
                                             {isEditing ? (
@@ -310,8 +309,9 @@ export default function ProfileContent() {
                                                     name="gender"
                                                     value={editedProfile?.gender || ''}
                                                     onChange={handleChange}
-                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 
-                                                focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                                                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 
+                                                    focus:ring-blue-500 focus:border-blue-500 transition-all duration-200
+                                                    hover:border-blue-400"
                                                 >
                                                     <option value="">Pilih Jenis Kelamin</option>
                                                     <option value="male">Laki-laki</option>
@@ -326,7 +326,8 @@ export default function ProfileContent() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    hover:bg-gray-50 rounded-2xl transition-colors duration-200">
                                         <label className="text-sm font-medium text-gray-700">Member Sejak</label>
                                         <div className="sm:col-span-2">
                                             <p className="text-gray-800">{formatTimestamp(profile.createdAt)}</p>
@@ -338,16 +339,17 @@ export default function ProfileContent() {
                                             <button
                                                 type="button"
                                                 onClick={handleCancel}
-                                                className="px-6 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 
-                                            transition-colors duration-200 font-medium"
+                                                className="px-6 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 
+                                                transition-all duration-300 font-medium active:transform active:scale-95"
                                                 disabled={isSaving}
                                             >
                                                 Batal
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                                            transition-colors duration-200 font-medium shadow-sm hover:shadow-md"
+                                                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 
+                                                transition-all duration-300 font-medium shadow-sm hover:shadow-lg
+                                                hover:shadow-blue-100 active:transform active:scale-95"
                                                 disabled={isSaving}
                                             >
                                                 {isSaving ? 'Menyimpan...' : 'Simpan'}

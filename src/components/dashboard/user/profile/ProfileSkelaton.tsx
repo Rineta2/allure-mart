@@ -2,46 +2,49 @@ import React from 'react'
 
 export default function ProfileSkelaton() {
     return (
-        <div className="max-w-4xl mx-auto p-4">
-            <div className="bg-white rounded-lg shadow p-6">
-                {/* Header Skeleton */}
-                <div className="flex justify-between items-center mb-6">
-                    <div className="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
-                    <div className="h-10 w-24 bg-gray-200 rounded animate-pulse"></div>
+        <section className="py-8 sm:py-12 bg-gray-50 min-h-screen">
+            <div className="container px-0 sm:px-6 mx-auto max-w-7xl">
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div className="flex flex-col gap-2">
+                        <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="h-4 w-72 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="w-full sm:w-32 h-10 bg-gray-200 rounded-xl animate-pulse"></div>
                 </div>
 
-                {/* Description Skeleton */}
-                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse mb-6"></div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Profile Details Skeleton */}
-                    <div className="md:col-span-2">
-                        <div className="space-y-4">
-                            {/* Name, Email, Role, Member Since fields */}
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="grid grid-cols-3 items-center">
-                                    <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
-                                    <div className="col-span-2">
-                                        <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
-                                    </div>
+                {/* Main Content Card */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-gray-100/50 p-6 sm:p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Profile Image Section */}
+                        <div className="flex flex-col items-center space-y-6 order-1 lg:order-2">
+                            <div className="w-40 h-40 sm:w-48 sm:h-48 bg-gray-200 rounded-3xl animate-pulse"></div>
+                            <div className="text-center w-full space-y-3">
+                                <div className="h-10 w-32 bg-gray-200 rounded-xl animate-pulse mx-auto"></div>
+                                <div className="space-y-1">
+                                    <div className="h-3 w-36 bg-gray-200 rounded animate-pulse mx-auto"></div>
+                                    <div className="h-3 w-32 bg-gray-200 rounded animate-pulse mx-auto"></div>
                                 </div>
-                            ))}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Profile Image Skeleton */}
-                    <div className="flex flex-col items-center space-y-4">
-                        <div className="w-32 h-32 bg-gray-200 rounded-xl animate-pulse"></div>
-                        <div className="text-center">
-                            <div className="h-8 w-24 bg-gray-200 rounded animate-pulse mx-auto"></div>
-                            <div className="mt-2 space-y-1">
-                                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
-                                <div className="h-3 w-28 bg-gray-200 rounded animate-pulse"></div>
+                        {/* Form Fields Section */}
+                        <div className="lg:col-span-2 order-2 lg:order-1">
+                            <div className="space-y-6">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="grid grid-cols-1 sm:grid-cols-3 gap-y-4 sm:items-center p-4 
+                                    rounded-2xl bg-gray-50">
+                                        <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                                        <div className="sm:col-span-2">
+                                            <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }
