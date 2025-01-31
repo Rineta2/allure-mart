@@ -263,11 +263,11 @@ export default function Header() {
                                         </div>
                                         <div className="p-2">
                                             <Link
-                                                href={user.role === 'user' ? '/profile' : `/${user.role}/dashboard`}
+                                                href={`/${user.role}/dashboard`}
                                                 className="flex items-center gap-2 w-full p-2 text-sm rounded-lg hover:bg-accent transition-colors duration-200"
                                                 onClick={() => setIsProfileOpen(false)}
                                             >
-                                                {user.role === 'user' ? 'Profile' : 'Dashboard'}
+                                                Dashboard
                                             </Link>
                                             <button
                                                 onClick={handleLogout}
