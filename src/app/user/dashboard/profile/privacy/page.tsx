@@ -1,6 +1,6 @@
 import React from 'react'
 
-import PrivacyContent from "@/components/dashboard/user/privacy/PrivacyContent"
+import PrivacyContent from "@/components/dashboard/user/profile/privacy/PrivacyContent"
 
 export const metadata = {
     title: 'ALLURE MART | Privacy Dashboard',

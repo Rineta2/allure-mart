@@ -1,6 +1,6 @@
 import React from 'react'
 
-import ProfileContent from "@/components/dashboard/user/profile/ProfileContent"
+import ProfileContent from "@/components/dashboard/user/profile/profile/ProfileContent"
 
 export const metadata = {
     title: 'ALLURE MART | Profile Dashboard',

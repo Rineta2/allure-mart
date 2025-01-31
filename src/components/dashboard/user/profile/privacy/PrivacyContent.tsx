@@ -6,9 +6,9 @@ import { auth } from '@/utils/firebase'
 
 import { useRouter } from 'next/navigation'
 
-import PrivacySkelaton from '@/components/dashboard/user/privacy/PrivacySkelaton'
+import PrivacySkelaton from '@/components/dashboard/user/profile/privacy/PrivacySkelaton'
 
-import DeleteAccountModal from '@/components/dashboard/user/privacy/hooks/DeleteAccountModal'
+import DeleteAccountModal from '@/components/dashboard/user/profile/privacy/hooks/DeleteAccountModal'
 
 import Image from 'next/image'
 

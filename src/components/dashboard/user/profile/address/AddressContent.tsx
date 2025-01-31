@@ -14,7 +14,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 import toast from 'react-hot-toast';
 
-import { Address, UserAccount } from '@/components/dashboard/user/address/schema/auth';
+import { Address, UserAccount } from '@/components/dashboard/user/profile/address/schema/auth';
 
 import { FaMapMarkerAlt } from 'react-icons/fa';
 
@@ -22,9 +22,9 @@ import { divIcon } from 'leaflet';
 
 import { renderToString } from 'react-dom/server';
 
-import AddressSkelaton from '@/components/dashboard/user/address/AdressSkelaton';
+import AddressSkelaton from '@/components/dashboard/user/profile/address/AdressSkelaton';
 
-import { LocationResult, Coordinates, OpenCageResult } from '@/components/dashboard/user/address/schema/auth';
+import { LocationResult, Coordinates, OpenCageResult } from '@/components/dashboard/user/profile/address/schema/auth';
 
 // Custom marker icon menggunakan React Icons
 const customIcon = divIcon({

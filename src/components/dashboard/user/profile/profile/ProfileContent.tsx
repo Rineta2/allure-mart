@@ -18,9 +18,9 @@ import { format } from 'date-fns';
 
 import { id } from 'date-fns/locale';
 
-import ProfileSkelaton from '@/components/dashboard/user/profile/ProfileSkelaton';
+import ProfileSkelaton from '@/components/dashboard/user/profile/profile/ProfileSkelaton';
 
-import { UserProfile } from "@/components/dashboard/user/profile/schema/schema"
+import { UserProfile } from "@/components/dashboard/user/profile/profile/schema/schema"
 
 export default function ProfileContent() {
     const { user } = useAuth();
