@@ -25,6 +25,7 @@ type AuthContextType = {
     loginWithGoogle: () => Promise<UserAccount>;
     loginWithFacebook: () => Promise<UserAccount>;
     logout: () => Promise<void>;
+    deleteAccount: () => Promise<void>;
     hasRole: (roles: string | string[]) => boolean;
     getDashboardUrl: (userRole: string) => string;
 };
@@ -107,6 +108,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
             console.error('Logout error:', error);
             toast.error('Terjadi kesalahan saat logout');
+        }
+    };
+
+    const deleteAccount = async () => {
+        try {
+            if (!user) {
+                throw new Error('No user logged in');
+            }
+
+            const idToken = await auth.currentUser?.getIdToken();
+            if (!idToken) {
+                throw new Error('Failed to get authentication token');
+            }
+
+            const response = await fetch('/api/user/delete', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${idToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to delete account');
+            }
+
+            setUser(null);
+            toast.success('Akun berhasil dihapus');
+            router.push('/');
+        } catch (error) {
+            console.error('Delete account error:', error);
+            toast.error(error instanceof Error ? error.message : 'Gagal menghapus akun');
+            throw error;
         }
     };
 
@@ -234,6 +268,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loginWithGoogle,
         loginWithFacebook,
         logout,
+        deleteAccount,
         hasRole,
         getDashboardUrl
     };

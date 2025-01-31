@@ -158,8 +158,8 @@ export default function ProfileContent() {
     }
 
     return (
-        <section className="py-8 sm:py-12 bg-gray-50 min-h-screen">
-            <div className="container px-0 sm:px-6 mx-auto max-w-7xl">
+        <section className="py-8 sm:py-12 min-h-full">
+            <div className="container max-w-6xl mx-auto">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div className="flex flex-col gap-2">
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">

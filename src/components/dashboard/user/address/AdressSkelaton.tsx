@@ -2,8 +2,8 @@ import React from 'react'
 
 export default function AddressSkelaton() {
     return (
-        <section className="py-8 sm:py-12 bg-gradient-to-b from-gray-50 to-white min-h-screen">
-            <div className="container px-4 sm:px-6 mx-auto max-w-7xl">
+        <section className="py-8 sm:py-12 min-h-full">
+            <div className="container max-w-6xl mx-auto">
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
