@@ -41,7 +41,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
         }
 
         // For dashboard page
-        if (normalizedHref === '/users/dashboard') {
+        if (normalizedHref === '/user/dashboard') {
             return normalizedPathname === normalizedHref;
         }
 
@@ -95,7 +95,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
                     />
                     <div>
                         <p className="text-[15px] font-semibold text-slate-900">{user?.displayName}</p>
-                        <p className="text-[12px] text-slate-500">Super Admin</p>
+                        <p className="text-[12px] text-slate-500">{user?.role}</p>
                     </div>
                 </div>
             </div>
