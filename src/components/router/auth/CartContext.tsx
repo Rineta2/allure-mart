@@ -14,14 +14,23 @@ import { useRouter } from 'next/navigation';
 
 import toast from 'react-hot-toast';
 
-// Extend ProductData for cart items
-interface CartItem extends ProductData {
+// Define simplified cart item structure
+interface CartItem {
+    id: string;
+    title: string;
+    name: string;
+    stock: number;
+    thumbnail: string;
+    category: { name: string };
+    gender: { name: string };
+    merek: { name: string };
+    price: number;
     quantity: number;
 }
 
 interface CartContextType {
     cartItems: CartItem[];
-    addToCart: (product: ProductData) => void;
+    addToCart: (product: ProductData, quantity?: number) => void;
     removeFromCart: (productId: string) => void;
     updateQuantity: (productId: string, quantity: number) => void;
     clearCart: () => void;
@@ -31,27 +40,18 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// Helper function to transform product data for Firebase
-const transformProductForCart = (product: ProductData): Omit<ProductData, 'category' | 'gender' | 'merek'> & {
-    category: { name: string },
-    gender: { name: string },
-    merek: { name: string }
-} => {
+// Helper function to transform product data for cart
+const transformProductForCart = (product: ProductData): Omit<CartItem, 'quantity'> => {
     return {
         id: product.id,
         title: product.title,
         name: product.name,
-        price: product.price,
-        description: product.description,
-        content: product.content,
         stock: product.stock,
-        slug: product.slug,
         thumbnail: product.thumbnail,
-        imageSlider: product.imageSlider,
-        createdAt: product.createdAt,
         category: { name: product.category.name },
         gender: { name: product.gender.name },
-        merek: { name: product.merek.name }
+        merek: { name: product.merek.name },
+        price: product.price
     };
 };
 
@@ -67,7 +67,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 setUserId(user.uid);
             } else {
                 setUserId(null);
-                setCartItems([]); // Clear cart when user logs out
+                setCartItems([]);
             }
         });
 
@@ -91,7 +91,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return () => unsubscribe();
     }, [userId]);
 
-    // Save cart to Firebase
     const saveCartToFirebase = async (newCartItems: CartItem[]) => {
         if (!userId) return;
 
@@ -99,19 +98,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (newCartItems.length === 0) {
             await remove(cartRef);
         } else {
-            const transformedItems = newCartItems.map(item => ({
-                ...transformProductForCart(item),
-                quantity: item.quantity
-            }));
-
             const cartObject = Object.fromEntries(
-                transformedItems.map(item => [item.id, item])
+                newCartItems.map(item => [item.id, item])
             );
             await set(cartRef, cartObject);
         }
     };
 
-    const addToCart = async (product: ProductData) => {
+    const addToCart = async (product: ProductData, quantity: number = 1) => {
         if (!userId) {
             toast.error('Harap Login Terlebih Dahulu', {
                 duration: 2000,
@@ -128,7 +122,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (existingItemIndex !== -1) {
             newCartItems[existingItemIndex] = {
                 ...newCartItems[existingItemIndex],
-                quantity: newCartItems[existingItemIndex].quantity + 1
+                quantity: newCartItems[existingItemIndex].quantity + quantity
             };
             toast.success('Item quantity berhasil diupdate!', {
                 duration: 2000,
@@ -137,8 +131,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             });
         } else {
             const cartItem: CartItem = {
-                ...product,
-                quantity: 1
+                ...transformProductForCart(product),
+                quantity: quantity
             };
             newCartItems.push(cartItem);
             toast.success('Item berhasil ditambahkan ke keranjang!', {
