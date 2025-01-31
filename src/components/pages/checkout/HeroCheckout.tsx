@@ -33,13 +33,13 @@ export default function ArticleHero() {
                     className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-10"
                     style={{ opacity }}
                 >
-                    <h3 className='text-4xl md:text-6xl font-bold text-title tracking-tight'>Article</h3>
+                    <h3 className='text-4xl md:text-6xl font-bold text-title tracking-tight'>Checkout</h3>
                     <div className="flex items-center gap-3 bg-[#000000]/20 px-6 py-2.5 rounded-full backdrop-blur-md">
                         <Link href="/" className='text-sm md:text-base text-white hover:text-primary transition-all duration-300'>
                             Home
                         </Link>
                         <IoIosArrowForward className="text-white text-sm" />
-                        <span className='text-sm md:text-base text-white/90'>Articles</span>
+                        <span className='text-sm md:text-base text-white/90'>Checkout</span>
                     </div>
                 </motion.div>
             </motion.div>

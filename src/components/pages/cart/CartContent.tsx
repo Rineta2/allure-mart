@@ -6,10 +6,6 @@ import Link from 'next/link'
 
 import Image from 'next/image'
 
-import banner from '@/components/assets/shop/bg.png'
-
-import { IoIosArrowForward } from 'react-icons/io'
-
 import { useCart } from '@/components/router/auth/CartContext'
 
 import { GiTrophy } from 'react-icons/gi'
@@ -18,6 +14,8 @@ import { MdOutlineSecurity, MdOutlineSupportAgent } from 'react-icons/md'
 
 import { CiDeliveryTruck } from "react-icons/ci";
 
+import HeroCart from '@/components/pages/cart/HeroCart'
+
 export default function CartContent() {
     const { cartItems, removeFromCart, updateQuantity } = useCart();
 
@@ -25,28 +23,7 @@ export default function CartContent() {
 
     return (
         <>
-            <div className="relative h-[50vh] sm:h-[60vh]">
-                <div className="absolute inset-0">
-                    <Image
-                        src={banner}
-                        alt="banner"
-                        className='w-full h-full object-cover brightness-75'
-                        priority
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-10">
-                        <h3 className='text-4xl md:text-6xl font-bold text-white tracking-tight'>Shopping Cart</h3>
-                        <div className="flex items-center gap-3 bg-white/20 px-6 py-2.5 rounded-full backdrop-blur-md">
-
-                            <Link href="/" className='text-sm md:text-base text-white hover:text-primary transition-all duration-300'>
-                                Home
-                            </Link>
-                            <IoIosArrowForward className="text-white text-sm" />
-                            <span className='text-sm md:text-base text-white/90'>Shopping Cart</span>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <HeroCart />
 
             <div className="container mx-auto px-4 py-12">
                 <div className="flex flex-col lg:flex-row gap-8">
