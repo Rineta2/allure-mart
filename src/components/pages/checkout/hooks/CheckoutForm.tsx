@@ -4,24 +4,18 @@ import React, { useEffect } from 'react';
 
 import { useForm } from 'react-hook-form';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import {
     CheckoutFormData,
-    checkoutSchema,
     CheckoutFormProps,
-    OrderData
+    OrderData,
+    OrderResponse,
 } from '@/components/pages/checkout/hooks/schema/Checkout';
 
 import { useAuth } from '@/components/router/auth/AuthContext';
+
 import { useRouter } from 'next/navigation';
 
-// Interface untuk response order
-interface OrderResponse {
-    orderId: string;
-    totalAmount: number;
-    snapToken: string;
-}
+import { toast } from 'react-hot-toast';
 
 // Type guard untuk memvalidasi OrderResponse
 function isOrderResponse(response: unknown): response is OrderResponse {
@@ -55,7 +49,6 @@ export default function CheckoutForm({
         formState: { errors },
         setValue,
     } = useForm<CheckoutFormData>({
-        resolver: zodResolver(checkoutSchema),
         defaultValues: {
             fullName: defaultAddress?.fullName || '',
             phone: defaultAddress?.phone || '',
@@ -128,7 +121,6 @@ export default function CheckoutForm({
                 totalItems,
                 totalAmount: total,
                 createdAt: new Date(),
-                status: 'pending'
             };
 
             console.log('Submitting order with data:', orderData);
@@ -146,10 +138,10 @@ export default function CheckoutForm({
                 console.log('Initializing Midtrans payment...');
 
                 window.snap.pay(response.snapToken, {
-                    onSuccess: async (result) => {
-                        console.log('Payment success:', result);
+                    onSuccess: async function (result: MidtransResult) {
+                        console.log('Full Midtrans success response:', result);
                         try {
-                            await fetch('/api/update-transaction-status', {
+                            const updateResponse = await fetch('/api/update-transaction-status', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -159,54 +151,43 @@ export default function CheckoutForm({
                                     transactionStatus: 'success',
                                     transactionId: result.transaction_id,
                                     paymentType: result.payment_type,
-                                    transactionTime: result.transaction_time,
-                                    fraudStatus: result.fraud_status
-                                }),
-                            });
-                            window.location.href = '/';
-                        } catch (error) {
-                            console.error('Error updating transaction status:', error);
-                            window.location.href = '/';
-                        }
-                    },
-                    onPending: async (result) => {
-                        console.log('Payment pending:', result);
-                        try {
-                            await fetch('/api/update-transaction-status', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    orderId: response.orderId,
-                                    transactionStatus: 'pending',
-                                    transactionId: result.transaction_id,
-                                    paymentType: result.payment_type,
                                     transactionTime: result.transaction_time
-                                }),
+                                })
                             });
-                            window.location.href = '/payment/pending';
+
+                            if (!updateResponse.ok) {
+                                const errorData = await updateResponse.json();
+                                console.error('Failed to update transaction status:', errorData);
+                                throw new Error(`Failed to update status: ${errorData.message}`);
+                            }
+
+                            const updateResult = await updateResponse.json();
+                            console.log('Transaction status updated successfully:', updateResult);
+
+                            // Tambahkan delay kecil untuk memastikan database terupdate
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+
+                            // Redirect ke halaman success
+                            router.push(`/order/success/${response.orderId}`);
                         } catch (error) {
                             console.error('Error updating transaction status:', error);
-                            window.location.href = '/payment/pending';
+                            if (error instanceof Error) {
+                                console.error('Error details:', error.message);
+                            }
+                            router.push(`/order/success/${response.orderId}`);
                         }
                     },
-                    onError: (result) => {
-                        console.log('Payment error:', result);
-                        window.location.href = '/payment/error';
+                    onPending: function (result: MidtransResult) {
+                        console.log('Payment pending:', result);
+                        router.push(`/order/pending/${response.orderId}`);
                     },
-                    onClose: () => {
-                        console.log('Payment popup closed');
-                        fetch('/api/update-transaction-status', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                orderId: response.orderId,
-                                transactionStatus: 'pending'
-                            }),
-                        }).catch(console.error);
+                    onError: function (result: MidtransResult) {
+                        console.log('Payment error:', result);
+                        toast.error('Payment failed. Please try again.');
+                    },
+                    onClose: function () {
+                        console.log('Customer closed the popup without finishing the payment');
+                        toast.error('Payment cancelled. Please try again if you wish to continue.');
                     }
                 });
             } else {

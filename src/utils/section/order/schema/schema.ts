@@ -1,7 +1,9 @@
 export interface OrderItem {
   id: string;
+  name: string;
   price: number;
   quantity: number;
+  thumbnail: string;
 }
 
 export interface OrderData {
@@ -9,7 +11,12 @@ export interface OrderData {
   orderId: string;
   transactionId: string;
   orderStatus: string;
+  status: string;
   transactionStatus: string;
+  transactionTime: string;
+  paymentMethod: string;
+  bankName: string;
+  fraudStatus: string;
 
   // Address related fields
   address: string;
@@ -21,6 +28,7 @@ export interface OrderData {
   type: string; // e.g. "rumah"
 
   // User information
+  userId: string;
   fullName: string;
   email: string;
   phone: string;

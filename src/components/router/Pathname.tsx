@@ -14,7 +14,9 @@ const Pathname = ({ children }: { children: React.ReactNode }) => {
     const isAdminRoute = pathname?.includes("/super-admins") ||
         pathname?.includes("/seller") ||
         pathname?.includes("/user") ||
-        pathname?.includes("/auth") || false;
+        pathname?.includes("/auth") ||
+        pathname?.includes("/order/pending") ||
+        pathname?.includes("/order/success") || false;
 
     return (
         <main>

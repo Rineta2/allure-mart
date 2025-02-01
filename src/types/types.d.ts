@@ -12,11 +12,12 @@ interface Window {
   };
 }
 
-interface MidtransResult {
+export interface MidtransResult {
   transaction_status: string;
   status_code: string;
   status_message: string;
   order_id: string;
   gross_amount: string;
   payment_type: string;
+  finish_redirect_url?: string;
 }

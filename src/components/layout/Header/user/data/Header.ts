@@ -31,8 +31,8 @@ export const menuItems = [
       { label: "Daftar Pesanan", href: "/user/dashboard/order" },
       { label: "Belum Dibayar", href: "/user/dashboard/order/unpaid" },
       { label: "Dikirim", href: "/user/dashboard/order/shipped" },
-      { label: "Selesai", href: "/user/dashboard/order/completed" },
       { label: "Dibatalkan", href: "/user/dashboard/order/canceled" },
+      { label: "Selesai", href: "/user/dashboard/order/completed" },
     ],
   },
 

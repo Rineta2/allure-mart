@@ -1,12 +1,12 @@
 import React from 'react'
 
-import UnpaidContent from '@/components/dashboard/user/order/unpaid/UnpaidContent'
-
 import { Metadata } from 'next'
 
+import UnpaidContent from "@/components/dashboard/user/order/unpaid/UnpaidContent"
+
 export const metadata: Metadata = {
-    title: 'ALLURE MART | Order Unpaid',
-    description: 'Order Unpaid',
+    title: 'ALLURE MART | Belum Dibayar Dashboard',
+    description: 'Belum Dibayar',
 }
 
 export default function Unpaid() {
@@ -14,4 +14,3 @@ export default function Unpaid() {
         <UnpaidContent />
     )
 }
-

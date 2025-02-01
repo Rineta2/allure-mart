@@ -53,8 +53,7 @@ export interface DefaultAddress {
 export const userSchema = z.object({
   id: z.string(),
   email: z.string().email(),
-  role: z.string(), // Added role field
-  // Add other user fields as needed
+  role: z.string(),
 });
 
 export type User = z.infer<typeof userSchema>;
@@ -74,22 +73,19 @@ export const addressSchema = z.object({
 
 export type Address = z.infer<typeof addressSchema>;
 
-// Checkout form schema
-export const checkoutSchema = z.object({
-  fullName: z.string().min(1, "Full name is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  email: z.string().email("Invalid email address"),
-  address: z.string().min(1, "Street address is required"),
-  addressDetail: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  province: z.string().min(1, "Province is required"),
-  zipCode: z.string().min(1, "ZIP code is required"),
-  district: z.string().min(1, "District is required"),
-  type: z.string().min(1, "Address type is required"),
-  message: z.string().optional(),
-});
-
-export type CheckoutFormData = z.infer<typeof checkoutSchema>;
+export type CheckoutFormData = {
+  fullName: string;
+  phone: string;
+  email: string;
+  address: string;
+  addressDetail?: string;
+  city: string;
+  province: string;
+  zipCode: string;
+  district: string;
+  type: string;
+  message?: string;
+};
 
 // Checkout Form Props
 export interface CheckoutFormProps {
@@ -111,9 +107,29 @@ export interface OrderData extends CheckoutFormData {
   totalItems: number;
   totalAmount: number;
   createdAt: Date;
-  status: "pending" | "success" | "failed";
 }
 
+// Interface untuk hasil callback Midtrans
+export interface MidtransResult {
+  transaction_id: string;
+  order_id: string;
+  payment_type: string;
+  transaction_time: string;
+  transaction_status: string;
+  fraud_status?: string;
+  gross_amount?: string;
+  currency?: string;
+  status_code?: string;
+  status_message?: string;
+  payment_code?: string;
+  bill_key?: string;
+  biller_code?: string;
+  pdf_url?: string;
+  finish_redirect_url?: string;
+  payment_method?: string;
+}
+
+// Interface untuk response order
 export interface OrderResponse {
   orderId: string;
   totalAmount: number;

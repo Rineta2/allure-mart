@@ -22,6 +22,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   name?: string;
+  thumbnail?: string;
 }
 
 // Interface untuk data transaksi
@@ -73,6 +74,7 @@ export interface Order {
   transactionStatus: TransactionStatus;
   transactionId?: string;
   paymentMethod?: string;
+  bankName?: string;
   createdAt: Date;
   updatedAt: Date;
 

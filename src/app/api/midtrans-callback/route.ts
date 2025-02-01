@@ -1,4 +1,5 @@
 import { db } from "@/utils/firebase";
+
 import {
   collection,
   query,
@@ -7,7 +8,9 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
+
 import { NextResponse } from "next/server";
+
 import {
   OrderStatus,
   TransactionStatus,
@@ -16,7 +19,11 @@ import {
 export async function POST(request: Request) {
   try {
     const notification = await request.json();
-    console.log("Received Midtrans notification:", notification);
+
+    // Validate collection name
+    if (!process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS) {
+      throw new Error("Collection name is not configured");
+    }
 
     const ordersRef = collection(
       db,
@@ -28,7 +35,6 @@ export async function POST(request: Request) {
     if (!querySnapshot.empty) {
       const orderDoc = querySnapshot.docs[0];
 
-      // Map Midtrans transaction status ke status aplikasi
       let transactionStatus: TransactionStatus;
       let orderStatus: OrderStatus;
 
@@ -56,30 +62,37 @@ export async function POST(request: Request) {
           orderStatus = "cancelled";
       }
 
-      console.log("Updating order status:", {
-        orderId: notification.order_id,
-        transactionStatus,
-        orderStatus,
-      });
-
-      await updateDoc(orderDoc.ref, {
+      const updateData = {
         transactionStatus,
         transactionId: notification.transaction_id,
-        paymentMethod: notification.payment_type,
+        paymentMethod: notification.payment_type || "unknown",
         orderStatus,
         updatedAt: serverTimestamp(),
-      });
+        ...(notification.settlement_time && {
+          settlementTime: notification.settlement_time,
+        }),
+        // Add status message if available
+        ...(notification.status_message && {
+          statusMessage: notification.status_message,
+        }),
+      };
 
-      console.log("Order status updated successfully");
+      await updateDoc(orderDoc.ref, updateData);
     } else {
-      console.error("Order not found:", notification.order_id);
+      throw new Error(`Order not found: ${notification.order_id}`);
     }
 
-    return NextResponse.json({ status: "success" });
+    return NextResponse.json({
+      status: "success",
+      message: "Notification processed successfully",
+    });
   } catch (error) {
-    console.error("Midtrans callback error:", error);
     return NextResponse.json(
-      { status: "error", message: "Failed to process callback" },
+      {
+        status: "error",
+        message: "Failed to process callback",
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

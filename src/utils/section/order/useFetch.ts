@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-import { collection, onSnapshot, query } from "firebase/firestore";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
-import { db } from "@/utils/firebase";
+import { db, auth } from "@/utils/firebase";
 
 import { Order } from "@/utils/section/order/schema/schema";
 
@@ -15,49 +15,75 @@ export const useFetchOrder = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      setOrder({
+        status: 403,
+        message: "User not authenticated",
+        data: [],
+      });
+      setLoading(false);
+      return;
+    }
+
     const orderRef = collection(
       db,
       process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS as string
     );
-    const q = query(orderRef);
+    const q = query(orderRef, where("userId", "==", currentUser.uid));
 
     const unsubscribe = onSnapshot(
       q,
       (querySnapshot) => {
-        const dataArray = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            orderId: data.orderId,
-            transactionId: data.transactionId,
-            orderStatus: data.orderStatus,
-            transactionStatus: data.transactionStatus,
+        const dataArray = querySnapshot.docs
+          .map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              orderId: data.orderId,
+              transactionId: data.transactionId,
+              orderStatus: data.orderStatus,
+              transactionStatus: data.transactionStatus,
+              paymentMethod: data.paymentMethod,
 
-            // Address related fields
-            address: data.address,
-            addressDetail: data.addressDetail,
-            city: data.city,
-            province: data.province,
-            district: data.district,
-            zipCode: data.zipCode,
-            type: data.type,
+              // Missing required fields
+              status: data.status,
+              bankName: data.bankName,
+              fraudStatus: data.fraudStatus,
+              userId: data.userId,
 
-            // User information
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
+              // Address related fields
+              address: data.address,
+              addressDetail: data.addressDetail,
+              city: data.city,
+              province: data.province,
+              district: data.district,
+              zipCode: data.zipCode,
+              type: data.type,
 
-            // Order details
-            items: data.items || [],
-            totalAmount: data.totalAmount,
-            totalItems: data.totalItems,
-            message: data.message,
+              // User information
+              fullName: data.fullName,
+              email: data.email,
+              phone: data.phone,
 
-            // Timestamps
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-          };
-        });
+              // Order details
+              items: data.items || [],
+              totalAmount: data.totalAmount,
+              totalItems: data.totalItems,
+              message: data.message,
+
+              // Timestamps
+              createdAt: data.createdAt,
+              updatedAt: data.updatedAt,
+
+              transactionTime: data.transactionTime,
+            };
+          })
+          .sort((a, b) => {
+            const timeA = new Date(a.transactionTime || 0).getTime();
+            const timeB = new Date(b.transactionTime || 0).getTime();
+            return timeB - timeA;
+          });
 
         setOrder({
           status: 200,

@@ -8,74 +8,79 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { NextResponse } from "next/server";
-import {
-  OrderStatus,
-  TransactionStatus,
-} from "@/components/pages/checkout/hooks/schema/order";
+import { z } from "zod";
+
+// Define the schema for the transaction update data
+const transactionUpdateSchema = z.object({
+  orderId: z.string().nonempty("Order ID is required"),
+  transactionStatus: z.string().optional(),
+  transactionId: z.string().nonempty("Transaction ID is required"),
+  transactionTime: z.string().nonempty("Transaction time is required"),
+});
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    console.log("Updating transaction status with data:", data);
+
+    // Validate the data against the schema
+    const validatedData = transactionUpdateSchema.parse(data);
 
     const ordersRef = collection(
       db,
       process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS as string
     );
-    const q = query(ordersRef, where("orderId", "==", data.orderId));
+
+    // Validate collection name
+    if (!process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS) {
+      throw new Error("Collection name is not configured");
+    }
+
+    const q = query(ordersRef, where("orderId", "==", validatedData.orderId));
     const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
-      const orderDoc = querySnapshot.docs[0];
-
-      let orderStatus: OrderStatus;
-      const transactionStatus = data.transactionStatus as TransactionStatus;
-
-      // Map transaction status to order status
-      switch (transactionStatus) {
-        case "success":
-          orderStatus = "processing";
-          break;
-        case "pending":
-          orderStatus = "pending";
-          break;
-        case "failure":
-        case "expired":
-        case "cancel":
-          orderStatus = "cancelled";
-          break;
-        default:
-          orderStatus = "pending";
-      }
-
-      const updateData = {
-        transactionStatus: transactionStatus,
-        orderStatus: orderStatus,
-        transactionId: data.transactionId,
-        paymentMethod: data.paymentType,
-        transactionTime: data.transactionTime,
-        updatedAt: serverTimestamp(),
-      } as const;
-
-      if (data.fraudStatus) {
-        Object.assign(updateData, { fraudStatus: data.fraudStatus });
-      }
-
-      await updateDoc(orderDoc.ref, updateData);
-      console.log("Order status updated successfully");
-
-      return NextResponse.json({ status: "success" });
-    } else {
-      console.error("Order not found:", data.orderId);
+    if (querySnapshot.empty) {
       return NextResponse.json(
-        { status: "error", message: "Order not found" },
+        {
+          status: "error",
+          message: "Order not found",
+        },
         { status: 404 }
       );
     }
+
+    const orderDoc = querySnapshot.docs[0];
+
+    const updateData = {
+      transactionStatus: validatedData.transactionStatus || "pending",
+      updatedAt: serverTimestamp(),
+      transactionId: validatedData.transactionId,
+      transactionTime: validatedData.transactionTime,
+    };
+
+    try {
+      await updateDoc(orderDoc.ref, updateData);
+
+      return NextResponse.json({
+        status: "success",
+        message: "Transaction status updated successfully",
+        data: updateData,
+      });
+    } catch (updateError) {
+      throw new Error(
+        `Failed to update document: ${
+          updateError instanceof Error ? updateError.message : "Unknown error"
+        }`
+      );
+    }
   } catch (error) {
-    console.error("Error updating transaction status:", error);
     return NextResponse.json(
-      { status: "error", message: "Failed to update transaction status" },
+      {
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update transaction status",
+      },
       { status: 500 }
     );
   }

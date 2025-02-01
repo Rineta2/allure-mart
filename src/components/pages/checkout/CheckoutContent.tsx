@@ -68,9 +68,7 @@ export default function CheckoutContent() {
                         });
                     }
                 }
-            } catch (error) {
-                console.error("Error fetching default address:", error);
-            } finally {
+            } catch {
                 setIsLoading(false);
             }
         };
@@ -150,7 +148,9 @@ export default function CheckoutContent() {
                     items: cartItems.map(item => ({
                         id: item.id,
                         quantity: item.quantity,
-                        price: item.price
+                        price: item.price,
+                        name: item.name,
+                        thumbnail: item.thumbnail
                     })),
                     totalItems,
                     totalAmount: total

@@ -17,6 +17,13 @@ interface TransactionItem {
   name: string;
 }
 
+// Define a type for the update data
+type UpdateData = {
+  transactionId: string;
+  updatedAt: ReturnType<typeof serverTimestamp>;
+  bankName?: string;
+};
+
 export async function POST(request: Request) {
   try {
     // Validasi environment variables
@@ -35,10 +42,17 @@ export async function POST(request: Request) {
     });
 
     const requestData = await request.json();
-    console.log("Received transaction request data:", requestData);
 
-    const { orderId, amount, firstName, lastName, email, phoneNumber, items } =
-      requestData;
+    const {
+      orderId,
+      amount,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      items,
+      bankName,
+    } = requestData;
 
     // Validasi required fields
     if (!orderId || !amount || !firstName || !email || !phoneNumber || !items) {
@@ -73,10 +87,7 @@ export async function POST(request: Request) {
       },
     };
 
-    console.log("Creating Midtrans transaction with parameters:", parameter);
-
     const transaction = await snap.createTransaction(parameter);
-    console.log("Midtrans transaction created successfully:", transaction);
 
     // Update status transaksi di Firestore
     const ordersRef = collection(
@@ -88,10 +99,17 @@ export async function POST(request: Request) {
 
     if (!querySnapshot.empty) {
       const orderDoc = querySnapshot.docs[0];
-      await updateDoc(orderDoc.ref, {
+      const updateData: Partial<UpdateData> = {
         transactionId: transaction.token,
         updatedAt: serverTimestamp(),
-      });
+      };
+
+      // Only add bankName if it is defined
+      if (bankName) {
+        updateData.bankName = bankName;
+      }
+
+      await updateDoc(orderDoc.ref, updateData);
     }
 
     return NextResponse.json({
@@ -100,15 +118,8 @@ export async function POST(request: Request) {
       orderId: orderId,
     });
   } catch (error: unknown) {
-    console.error("Midtrans Transaction Error:", error);
-
     const errorMessage =
       error instanceof Error ? error.message : "Error creating transaction";
-    console.error("Detailed error:", {
-      message: errorMessage,
-      serverKeyExists: !!process.env.MIDTRANS_SERVER_KEY,
-      clientKeyExists: !!process.env.MIDTRANS_CLIENT_KEY,
-    });
 
     return NextResponse.json(
       {

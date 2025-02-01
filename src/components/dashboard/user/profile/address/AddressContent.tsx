@@ -281,10 +281,15 @@ export default function AddressContent() {
         try {
             if (!user?.uid) return;
 
-            const updatedAddresses = addresses.map(addr => ({
-                ...addr,
-                isDefault: addr.id === addressId
-            }));
+            // Create new array with the selected address as default and move it to top
+            const selectedAddress = addresses.find(addr => addr.id === addressId);
+            if (!selectedAddress) return;
+
+            const otherAddresses = addresses.filter(addr => addr.id !== addressId);
+            const updatedAddresses = [
+                { ...selectedAddress, isDefault: true },
+                ...otherAddresses.map(addr => ({ ...addr, isDefault: false }))
+            ];
 
             const userRef = doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_ACCOUNTS as string, user.uid);
             await updateDoc(userRef, {
