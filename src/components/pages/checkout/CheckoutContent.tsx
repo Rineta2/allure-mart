@@ -28,20 +28,22 @@ import type { DefaultAddress, OrderData, OrderResponse } from '@/components/page
 
 export default function CheckoutContent() {
     const { cartItems, totalItems } = useCart();
-    const { user } = useAuth();
-    const [isLoading, setIsLoading] = useState(true);
+    const { user, loading: authLoading } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
     const [defaultAddress, setDefaultAddress] = useState<DefaultAddress | null>(null);
     const router = useRouter();
 
     const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     React.useEffect(() => {
+        if (authLoading) return;
+
         if (!user) {
             localStorage.setItem('redirectAfterLogin', '/checkout');
-            setIsLoading(false); // Set loading false jika tidak ada user
             return;
         }
 
+        setIsLoading(true);
         const fetchDefaultAddress = async () => {
             try {
                 const accountsRef = collection(db, process.env.NEXT_PUBLIC_COLLECTIONS_ACCOUNTS as string);
@@ -68,20 +70,20 @@ export default function CheckoutContent() {
                         });
                     }
                 }
-            } catch {
+            } catch (error) {
+                console.error("Error fetching default address:", error);
+            } finally {
                 setIsLoading(false);
             }
         };
 
         fetchDefaultAddress();
-    }, [user]);
+    }, [user, authLoading]);
 
-    // Tampilkan loading state hanya jika user ada dan data sedang diambil
-    if (isLoading && user) {
+    if (authLoading || isLoading) {
         return <CheckoutSkelaton />;
     }
 
-    // Update bagian validasi sebelum render
     if (!user) {
         return (
             <section className='min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden'>
