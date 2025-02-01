@@ -24,6 +24,7 @@
     "imagekit": "^6.0.0",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
+    "midtrans-client": "^1.4.2",
     "next": "15.1.6",
     "opencage-api-client": "^1.0.7",
     "react": "^19.0.0",

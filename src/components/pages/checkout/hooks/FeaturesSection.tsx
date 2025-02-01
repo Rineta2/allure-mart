@@ -4,7 +4,11 @@ import { MdOutlineSecurity, MdOutlineSupportAgent } from 'react-icons/md';
 
 import { CiDeliveryTruck } from 'react-icons/ci';
 
-import { FeatureItemProps } from '@/components/pages/checkout/hooks/schema/Checkout';
+interface FeatureItemProps {
+    title: string;
+    description: string;
+    icon?: React.ReactNode;
+}
 
 function FeatureItem({ icon, title, description }: FeatureItemProps) {
     return (

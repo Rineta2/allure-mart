@@ -32,7 +32,7 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
 
     const isLinkActive = (href: string) => {
         // Remove trailing slashes for comparison
-        const normalizedPathname = pathname.replace(/\/$/, '');
+        const normalizedPathname = pathname?.replace(/\/$/, '') ?? '';
         const normalizedHref = href.replace(/\/$/, '');
 
         // For home page

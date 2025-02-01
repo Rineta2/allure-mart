@@ -58,6 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const handleRedirect = (userData: UserAccount) => {
+        // Check if there's a saved redirect URL
+        const redirectUrl = localStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+            localStorage.removeItem('redirectAfterLogin'); // Clear the saved URL
+            router.push(redirectUrl);
+            return;
+        }
+
+        // Default redirect based on role if no saved redirect URL
         const dashboardUrl = getDashboardUrl(userData.role);
         router.push(dashboardUrl);
     };

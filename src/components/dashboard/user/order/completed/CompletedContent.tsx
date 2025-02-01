@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react'
 
-import OrderSkelaton from '@/components/dashboard/user/order/order/OrderSkelaton'
+import CompletedSkelaton from '@/components/dashboard/user/order/completed/CompletedSkelaton'
 
-export default function OrderContent() {
+export default function CompletedContent() {
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
@@ -13,9 +13,9 @@ export default function OrderContent() {
         }, 3000)
     }, [])
 
-    if (isLoading) return <OrderSkelaton />
+    if (isLoading) return <CompletedSkelaton />
 
     return (
-        <div>OrderContent</div>
+        <div>CompletedContent</div>
     )
 }

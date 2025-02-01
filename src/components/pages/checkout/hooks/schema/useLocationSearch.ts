@@ -2,7 +2,10 @@ import React from "react";
 
 import * as opencage from "opencage-api-client";
 
-import { LocationOption, GeocodingResult } from "./schema";
+import {
+  LocationOption,
+  GeocodingResult,
+} from "@/components/pages/checkout/hooks/schema/Checkout";
 
 export function useLocationSearch() {
   const [locationOptions, setLocationOptions] = React.useState<

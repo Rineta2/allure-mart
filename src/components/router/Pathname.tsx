@@ -1,26 +1,34 @@
 "use client";
 
 import React from "react";
-
 import { usePathname } from "next/navigation";
-
+import Script from "next/script";
 import Header from "@/components/layout/Header/Header";
-
 import Footer from "@/components/layout/Footer/Footer";
-
 import { Toaster } from "react-hot-toast";
 
 const Pathname = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     // Check for all dashboard/admin routes
-    const isAdminRoute = pathname.includes("/super-admins") ||
-        pathname.includes("/seller") ||
-        pathname.includes("/user") ||
-        pathname.includes("/auth");
+    const isAdminRoute = pathname?.includes("/super-admins") ||
+        pathname?.includes("/seller") ||
+        pathname?.includes("/user") ||
+        pathname?.includes("/auth") || false;
 
     return (
         <main>
+            <Script
+                src="https://app.sandbox.midtrans.com/snap/snap.js"
+                data-client-key={process.env.MIDTRANS_CLIENT_KEY}
+                strategy="lazyOnload"
+                onLoad={() => {
+                    console.log('Midtrans Snap loaded successfully');
+                }}
+                onError={(e) => {
+                    console.error('Error loading Midtrans Snap:', e);
+                }}
+            />
             <Toaster
                 position="top-center"
                 toastOptions={{

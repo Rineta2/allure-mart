@@ -447,12 +447,11 @@ export default function AddressContent() {
                                                             className="w-full text-left px-4 py-2 hover:bg-gray-100"
                                                             onClick={() => {
                                                                 if (location.coordinates) {
-                                                                    const coordinatesString = `${location.coordinates.lat},${location.coordinates.lng}`;
                                                                     setFormData({
                                                                         ...formData,
                                                                         province: location.province,
                                                                         city: location.city,
-                                                                        district: coordinatesString,
+                                                                        district: `${location.coordinates.lat},${location.coordinates.lng}`,
                                                                         postalCode: location.postalCode,
                                                                     });
                                                                     setSelectedLocation(location.coordinates);
