@@ -11,21 +11,17 @@ export interface OrderData {
   orderId: string;
   transactionId: string;
   orderStatus: string;
-  status: string;
   transactionStatus: string;
   transactionTime: string;
-  paymentMethod: string;
-  bankName: string;
-  fraudStatus: string;
 
   // Address related fields
   address: string;
   addressDetail: string;
   city: string;
   province: string;
-  district: string;
+  district: string; // Contains coordinates like "-7.4126406,108.1850556"
   zipCode: string;
-  type: string; // e.g. "rumah"
+  type: string; // e.g. "kantor"
 
   // User information
   userId: string;

@@ -184,22 +184,6 @@ export default function OrderContent() {
                                         backdrop-blur-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/40">
                                         <h4 className="font-medium text-gray-800 mb-4">Payment Information</h4>
                                         <div className="flex flex-wrap gap-4 text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-blue-600">
-                                                    {item.paymentMethod === 'bank_transfer' ? '🏦' : '💳'}
-                                                </span>
-                                                <span className="capitalize">
-                                                    {item.paymentMethod ? item.paymentMethod.replace('_', ' ') : 'N/A'}
-                                                </span>
-                                            </div>
-
-                                            {item.bankName && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-gray-600">
-                                                        {item.bankName}
-                                                    </span>
-                                                </div>
-                                            )}
 
                                             <div className="flex items-center gap-2">
                                                 <span className="font-mono text-gray-600">

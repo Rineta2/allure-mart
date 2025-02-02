@@ -44,13 +44,7 @@ export const useFetchOrder = () => {
               transactionId: data.transactionId,
               orderStatus: data.orderStatus,
               transactionStatus: data.transactionStatus,
-              paymentMethod: data.paymentMethod,
-
-              // Missing required fields
-              status: data.status,
-              bankName: data.bankName,
-              fraudStatus: data.fraudStatus,
-              userId: data.userId,
+              transactionTime: data.transactionTime,
 
               // Address related fields
               address: data.address,
@@ -62,6 +56,7 @@ export const useFetchOrder = () => {
               type: data.type,
 
               // User information
+              userId: data.userId,
               fullName: data.fullName,
               email: data.email,
               phone: data.phone,
@@ -75,8 +70,6 @@ export const useFetchOrder = () => {
               // Timestamps
               createdAt: data.createdAt,
               updatedAt: data.updatedAt,
-
-              transactionTime: data.transactionTime,
             };
           })
           .sort((a, b) => {

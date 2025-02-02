@@ -10,24 +10,31 @@ import { useFetchOrder } from '@/utils/section/order/useFetch'
 
 import { Order } from '@/utils/section/order/schema/schema'
 
-import Image from 'next/image'
-
 import Pagination from '@/components/helper/Pagination'
 
-// Add type for order parameter
-interface OrderPaymentDetails {
-    orderId: string;
-    totalAmount: number;
-    paymentMethod: string;
-    bankName?: string;
-    transactionId?: string;
-}
+import { usePayment } from '@/components/dashboard/user/order/unpaid/hooks/utils/usePayment'
+
+import { OrderDetailsModal } from '@/components/dashboard/user/order/unpaid/hooks/OrderDetailsModal'
+
+import { CancelConfirmationModal } from '@/components/dashboard/user/order/unpaid/hooks/CancelConfrimationModal'
+
+import { OrderData } from '@/components/dashboard/user/order/unpaid/hooks/utils/order'
 
 export default function UnpaidContent() {
     const { order, loading }: { order: Order, loading: boolean } = useFetchOrder()
     const [searchQuery, setSearchQuery] = React.useState('')
     const [currentPage, setCurrentPage] = React.useState(1)
     const itemsPerPage = 10
+
+    // Add new state for modal
+    const [selectedOrder, setSelectedOrder] = React.useState<OrderData | null>(null)
+    const [isModalOpen, setIsModalOpen] = React.useState(false)
+
+    // Add new state for cancel confirmation modal
+    const [showCancelModal, setShowCancelModal] = React.useState(false)
+    const [orderToCancel, setOrderToCancel] = React.useState<string | null>(null)
+
+    const { handleContinuePayment } = usePayment()
 
     useEffect(() => {
         const script = document.createElement('script')
@@ -39,6 +46,20 @@ export default function UnpaidContent() {
             document.head.removeChild(script)
         }
     }, [])
+
+    // Add useEffect for handling body scroll
+    useEffect(() => {
+        if (isModalOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+
+        // Cleanup function
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [isModalOpen])
 
     if (loading) return <OrderSkelaton />
 
@@ -63,86 +84,14 @@ export default function UnpaidContent() {
     const endIndex = startIndex + itemsPerPage
     const currentOrders = filteredOrders.slice(startIndex, endIndex)
 
-    const handleContinuePayment = async (order: OrderPaymentDetails) => {
-        const loadingToast = toast.loading('Processing payment...')
-
-        try {
-            const response = await fetch('/api/continue-transaction', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    orderId: order.orderId,
-                    amount: order.totalAmount,
-                    paymentMethod: order.paymentMethod,
-                    bankName: order.bankName,
-                }),
-            })
-
-            const data = await response.json()
-
-            if (data.status === 'success' && window.snap) {
-                toast.dismiss(loadingToast)
-                window.snap.pay(data.token, {
-                    onSuccess: async (result) => {
-                        try {
-                            const updateData = {
-                                orderId: order.orderId,
-                                transactionStatus: 'success',
-                                transactionId: result.transaction_id,
-                                transactionTime: result.transaction_time,
-                                paymentMethod: result.payment_type
-                            };
-
-                            const updateResponse = await fetch('/api/update-transaction-status', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(updateData),
-                            });
-
-                            const responseText = await updateResponse.text();
-                            let responseData;
-                            try {
-                                responseData = JSON.parse(responseText);
-                            } catch {
-                                throw new Error('Invalid response format');
-                            }
-
-                            if (updateResponse.ok) {
-                                toast.success('Payment completed successfully!');
-                                window.location.href = `/order/success/${order.orderId}`;
-                            } else {
-                                toast.error(`Failed to update status: ${responseData.message || 'Unknown error'}`);
-                            }
-                        } catch {
-                            toast.error('Failed to update transaction status');
-                        }
-                    },
-                    onPending: () => {
-                        toast.loading('Payment is pending')
-                    },
-                    onError: () => {
-                        toast.error('Payment failed')
-                    },
-                    onClose: () => {
-                        toast.loading('Payment window closed')
-                    },
-                })
-            } else {
-                toast.dismiss(loadingToast)
-                toast.error('Failed to initialize payment. Please try again.')
-            }
-        } catch {
-            toast.dismiss(loadingToast)
-            toast.error('An error occurred. Please try again later.')
-        }
+    const handleCancelOrder = async (orderId: string) => {
+        setOrderToCancel(orderId)
+        setShowCancelModal(true)
     }
 
-    // Add new function to handle order cancellation
-    const handleCancelOrder = async (orderId: string) => {
+    const confirmCancelOrder = async () => {
+        if (!orderToCancel) return
+
         const loadingToast = toast.loading('Cancelling order...');
 
         try {
@@ -152,7 +101,7 @@ export default function UnpaidContent() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    orderId,
+                    orderId: orderToCancel,
                     transactionStatus: 'cancelled',
                     orderStatus: 'cancelled',
                     transactionTime: new Date().toISOString(),
@@ -170,7 +119,7 @@ export default function UnpaidContent() {
             if (response.ok && data.status === 'success') {
                 toast.dismiss(loadingToast);
                 toast.success('Order cancelled successfully');
-                const updatedOrders = order.data.filter(item => item.orderId !== orderId);
+                const updatedOrders = order.data.filter(item => item.orderId !== orderToCancel);
                 order.data = updatedOrders;
             } else {
                 toast.dismiss(loadingToast);
@@ -179,6 +128,9 @@ export default function UnpaidContent() {
         } catch {
             toast.dismiss(loadingToast);
             toast.error('An error occurred while cancelling the order');
+        } finally {
+            setShowCancelModal(false)
+            setOrderToCancel(null)
         }
     }
 
@@ -186,210 +138,133 @@ export default function UnpaidContent() {
         <section className='min-h-screen bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 py-12'>
             <div className="container">
                 <div className="flex flex-col gap-12">
-                    {/* Search Bar with enhanced styling */}
+                    {/* Enhanced Search Bar */}
                     <div className="search relative max-w-2xl mx-auto w-full">
                         <input
                             type="text"
                             placeholder='Search by order ID, name, email, or phone'
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full px-6 py-4 rounded-full border border-gray-200/80 
+                            className="w-full px-6 py-4 rounded-2xl border border-gray-200/80 
                             focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500
                             bg-white/95 backdrop-blur-xl text-gray-700 placeholder-gray-400
                             shadow-lg shadow-gray-200/20 hover:border-gray-300 transition-all duration-300"
                         />
                         <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400">
-                            🔍
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
                         </span>
                     </div>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-8'>
+                    {/* Modernized Card Grid */}
+                    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6'>
                         {currentOrders.map((item) => (
                             <div
                                 key={item.id}
-                                className="bg-white/95 p-6 lg:p-8 rounded-[2rem] shadow-xl shadow-gray-200/40
-                                border border-gray-100/80 backdrop-blur-xl transition-all duration-300
-                                hover:border-gray-200/80 hover:shadow-2xl hover:shadow-gray-200/60
-                                hover:translate-y-[-2px]"
+                                className="group bg-white/95 p-6 rounded-2xl shadow-sm border border-gray-100/80 
+                                backdrop-blur-xl transition-all duration-300 hover:shadow-xl hover:scale-[1.02]
+                                hover:border-blue-500/20"
                             >
                                 {/* Order Header */}
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                                <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-800 tracking-tight">
-                                            Order #{item.orderId}
+                                        <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                                            #{item.orderId}
                                         </h3>
-                                        <p className="text-sm text-gray-500 mt-1.5 font-medium">
-                                            {new Date().toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric'
-                                            })}
-                                        </p>
+                                        {item.transactionTime && (
+                                            <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {new Date(item.transactionTime).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                    <span className={`px-4 py-2 rounded-full text-sm font-semibold inline-flex items-center gap-2
-                                    transition-all duration-300 hover:scale-105
-                                    ${item.orderStatus === 'completed' ? 'bg-green-100/80 text-green-700 ring-1 ring-green-600/20' :
-                                            item.orderStatus === 'pending' ? 'bg-yellow-100/80 text-yellow-700 ring-1 ring-yellow-600/20' :
-                                                item.orderStatus === 'cancelled' ? 'bg-red-100/80 text-red-700 ring-1 ring-red-600/20' :
-                                                    'bg-blue-100/80 text-blue-700 ring-1 ring-blue-600/20'}`}>
-                                        <span className="h-2.5 w-2.5 rounded-full bg-current animate-pulse"></span>
-                                        {item.orderStatus.charAt(0).toUpperCase() + item.orderStatus.slice(1)}
+                                    <button
+                                        onClick={() => {
+                                            setSelectedOrder(item)
+                                            setIsModalOpen(true)
+                                        }}
+                                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                    >
+                                        <svg className="w-5 h-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* Status Badge */}
+                                <div className="mb-4">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                                        ${item.transactionStatus === 'success' ? 'bg-green-100 text-green-700' :
+                                            item.transactionStatus === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                                'bg-red-100 text-red-700'}`}>
+                                        <span className={`w-2 h-2 rounded-full mr-2 
+                                            ${item.transactionStatus === 'success' ? 'bg-green-500' :
+                                                item.transactionStatus === 'pending' ? 'bg-amber-500' :
+                                                    'bg-red-500'}`}>
+                                        </span>
+                                        {item.transactionStatus.toUpperCase()}
                                     </span>
                                 </div>
 
-                                {/* Customer Details */}
-                                <div className="grid gap-3">
-                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-gray-50/95 to-white/90 border border-gray-100 
-                                        backdrop-blur-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/40">
-                                        <h4 className="font-medium text-gray-800 mb-4">Customer Information</h4>
-                                        <div className="space-y-3">
-                                            <p className="text-sm text-gray-600 flex items-center gap-3">
-                                                <span className="w-20 text-gray-500">Name:</span>
-                                                <span className="font-medium">{item.fullName}</span>
-                                            </p>
-                                            <p className="text-sm text-gray-600 flex items-center gap-3">
-                                                <span className="w-20 text-gray-500">Email:</span>
-                                                <span className="font-medium">{item.email}</span>
-                                            </p>
-                                            <p className="text-sm text-gray-600 flex items-center gap-3">
-                                                <span className="w-20 text-gray-500">Phone:</span>
-                                                <span className="font-medium">{item.phone}</span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-5 rounded-2xl bg-gradient-to-br from-gray-50/95 to-white/90 border border-gray-100 
-                                        backdrop-blur-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/40">
-                                        <h4 className="font-medium text-gray-800 mb-4">Shipping Address</h4>
-                                        <div className="space-y-3 text-sm text-gray-600">
-                                            <p>{item.address}</p>
-                                            <p>{item.addressDetail}</p>
-                                            <p>{item.city}, {item.province} {item.zipCode}</p>
-                                        </div>
-                                    </div>
+                                {/* Amount */}
+                                <div className="mb-6">
+                                    <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                                    <p className="text-xl font-bold text-blue-600">
+                                        Rp {item.totalAmount?.toLocaleString()}
+                                    </p>
                                 </div>
 
-                                {/* Order Details */}
-                                <div className="border-t border-gray-100 pt-6 mt-6">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h4 className="font-medium text-gray-800">Order Summary</h4>
-                                        <p className="text-sm font-medium px-4 py-1.5 bg-gray-100 rounded-full text-gray-700">
-                                            {item.totalItems} items
-                                        </p>
-                                    </div>
-
-                                    {/* Items List */}
-                                    <div className="space-y-4">
-                                        {item.items?.map((product, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center justify-between p-4 rounded-2xl
-                                                bg-gradient-to-br from-gray-50/95 to-white/90 transition-all duration-300 
-                                                border border-gray-100/80 hover:border-gray-200/80 hover:shadow-lg
-                                                hover:shadow-gray-200/40 group"
-                                            >
-                                                <div className="flex items-center gap-4">
-                                                    <div className="relative overflow-hidden rounded-xl w-16 h-16 
-                                                        group-hover:scale-105 transition-transform duration-300">
-                                                        <Image
-                                                            src={product.thumbnail}
-                                                            alt={product.name}
-                                                            width={500}
-                                                            height={500}
-                                                            className="object-cover w-full h-full"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-medium text-gray-800">{product.name}</p>
-                                                        <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
-                                                    </div>
-                                                </div>
-                                                <span className="font-medium text-gray-800">
-                                                    Rp {(product.price * product.quantity).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Total Amount */}
-                                    <div className="border-t border-gray-100 mt-6 pt-6">
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-medium text-gray-800">Total Amount</span>
-                                            <span className="font-semibold text-xl text-blue-600">
-                                                Rp {item.totalAmount?.toLocaleString() || '0'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Payment Details */}
-                                    <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-gray-50/95 to-white/90 border border-gray-100
-                                        backdrop-blur-xl transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/40">
-                                        <h4 className="font-medium text-gray-800 mb-4">Payment Information</h4>
-                                        <div className="flex flex-wrap gap-4 text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-blue-600">
-                                                    {item.paymentMethod === 'bank_transfer' ? '🏦' : '💳'}
-                                                </span>
-                                                <span className="capitalize">
-                                                    {item.paymentMethod ? item.paymentMethod.replace('_', ' ') : 'Not specified'}
-                                                </span>
-                                            </div>
-
-                                            {item.bankName && (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-gray-600">
-                                                        {item.bankName}
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-mono text-gray-600">
-                                                    {item.transactionId}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-medium 
-                                                    ${item.transactionStatus === 'success' ? 'bg-green-100/80 text-green-700 ring-1 ring-green-600/20' :
-                                                        item.transactionStatus === 'pending' ? 'bg-yellow-100/80 text-yellow-700 ring-1 ring-yellow-600/20' :
-                                                            'bg-red-100/80 text-red-700 ring-1 ring-red-600/20'}`}>
-                                                    {item.transactionStatus.charAt(0).toUpperCase() + item.transactionStatus.slice(1)}
-                                                </span>
-                                            </div>
-
-                                            {item.transactionTime && (
-                                                <div className="flex items-center gap-2 text-gray-500">
-                                                    <span>🕒</span>
-                                                    {item.transactionTime}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                                        <button
-                                            className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl 
-                                            font-semibold hover:bg-gray-50 transition-all duration-300 hover:scale-105 
-                                            hover:border-gray-300 shadow-lg shadow-gray-200/20"
-                                            onClick={() => handleContinuePayment(item)}
-                                        >
-                                            Lanjutkan Pembayaran
-                                        </button>
-                                        <button
-                                            className="flex-1 px-6 py-3 border-2 border-gray-200 text-gray-700 rounded-xl 
-                                            font-semibold hover:bg-gray-50 transition-all duration-300 hover:scale-105 
-                                            hover:border-gray-300 shadow-lg shadow-gray-200/20"
-                                            onClick={() => handleCancelOrder(item.orderId)}
-                                        >
-                                            Cancel Order
-                                        </button>
-                                    </div>
+                                {/* Action Buttons */}
+                                <div className="flex gap-3 mt-auto">
+                                    <button
+                                        onClick={() => handleContinuePayment(item)}
+                                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl 
+                                        font-medium hover:bg-blue-700 active:bg-blue-800 
+                                        transition-all duration-200 shadow-lg shadow-blue-500/20"
+                                    >
+                                        Pay Now
+                                    </button>
+                                    <button
+                                        onClick={() => handleCancelOrder(item.orderId)}
+                                        className="px-4 py-2.5 border border-gray-200 rounded-xl 
+                                        font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 
+                                        active:bg-gray-100 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
+
+                    {selectedOrder && (
+                        <OrderDetailsModal
+                            order={selectedOrder}
+                            isOpen={isModalOpen}
+                            onClose={() => setIsModalOpen(false)}
+                            onContinuePayment={handleContinuePayment}
+                            onCancelOrder={handleCancelOrder}
+                        />
+                    )}
+
+                    <CancelConfirmationModal
+                        isOpen={showCancelModal}
+                        onConfirm={confirmCancelOrder}
+                        onCancel={() => {
+                            setShowCancelModal(false);
+                            setOrderToCancel(null);
+                        }}
+                    />
 
                     {/* Pagination */}
                     <Pagination
