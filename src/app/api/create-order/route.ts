@@ -1,6 +1,9 @@
 import { db } from "@/utils/firebase";
+
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 import { NextResponse } from "next/server";
+
 import {
   OrderStatus,
   TransactionStatus,
@@ -11,7 +14,7 @@ export async function POST(request: Request) {
     const orderData = await request.json();
     console.log("Creating order with data:", orderData);
 
-    const orderId = `ORD-${Date.now()}-${Math.random()
+    const orderId: string = `ORD-${Date.now()}-${Math.random()
       .toString(36)
       .substr(2, 9)}`;
 

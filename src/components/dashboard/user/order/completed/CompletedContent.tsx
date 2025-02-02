@@ -19,15 +19,16 @@ import Pagination from '@/components/helper/Pagination'
 import { OrderProgress } from '@/components/dashboard/user/order/shipped/hooks/OrderProgress'
 
 export default function OrderContent() {
-    const { order, loading }: { order: Order, loading: boolean } = useFetchOrder()
+    const orderData = useFetchOrder();
+    const { data: orders, loading } = orderData;
     const [searchQuery, setSearchQuery] = React.useState('')
     const [currentPage, setCurrentPage] = React.useState(1)
     const itemsPerPage = 10
     const [selectedOrder, setSelectedOrder] = useState<Order['data'][0] | null>(null)
 
-    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />
+    if (loading && orders && orders.length > 0) return <OrderSkelaton />
 
-    const filteredOrders = order.data
+    const filteredOrders = orders
         .filter(item => item.orderStatus === "completed")
         .filter((item) =>
             item.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,7 +53,7 @@ export default function OrderContent() {
         <section className='min-h-full py-12'>
             <div className="container">
                 <div className="flex flex-col gap-8">
-                    {order.data.filter(item => item.orderStatus === "completed").length > 0 ? (
+                    {orders.filter(item => item.orderStatus === "completed").length > 0 ? (
                         <>
                             {/* Search Bar */}
                             <div className="search relative max-w-2xl mx-auto w-full">

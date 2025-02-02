@@ -53,6 +53,7 @@ export default function CheckoutForm({
             fullName: defaultAddress?.fullName || '',
             phone: defaultAddress?.phone || '',
             email: user?.email || '',
+            photoURL: authUser?.photoURL || '',
             address: defaultAddress?.streetAddress || '',
             addressDetail: defaultAddress?.details || '',
             city: defaultAddress?.city || '',
@@ -113,6 +114,7 @@ export default function CheckoutForm({
             const orderData: OrderData = {
                 ...data,
                 userId: authUser.uid,
+                photoURL: authUser.photoURL || '',
                 items: cartItems.map(item => ({
                     id: item.id,
                     quantity: item.quantity,
@@ -149,6 +151,7 @@ export default function CheckoutForm({
                                 body: JSON.stringify({
                                     orderId: response.orderId,
                                     transactionStatus: 'success',
+                                    orderStatus: 'pending',
                                     transactionId: result.transaction_id,
                                     paymentType: result.payment_type,
                                     transactionTime: result.transaction_time

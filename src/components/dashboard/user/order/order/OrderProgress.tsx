@@ -11,8 +11,8 @@ interface OrderProgressProps {
 
 export const OrderProgress: React.FC<OrderProgressProps> = ({ status }) => {
     const steps = [
-        { status: 'pending', label: 'Menunggu Pembayaran' },
-        { status: 'processing', label: 'Pembayaran Berhasil' },
+        { status: 'pending', label: 'Menunggu Konfirmasi' },
+        { status: 'processing', label: 'Sedang Diproses' },
         { status: 'packaging', label: 'Sedang Dikemas' },
         { status: 'shipped', label: 'Dalam Pengiriman' },
         { status: 'delivered', label: 'Sudah Diterima' },

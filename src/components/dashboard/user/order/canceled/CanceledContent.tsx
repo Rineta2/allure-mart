@@ -17,16 +17,17 @@ import { useFetchOrder } from '@/utils/section/order/useFetch'
 import { Order } from '@/utils/section/order/schema/schema'
 
 export default function CanceledContent() {
-    const { order, loading }: { order: Order, loading: boolean } = useFetchOrder()
+    const orderData = useFetchOrder();
+    const { data: orders, loading } = orderData;
     const [searchQuery, setSearchQuery] = React.useState('')
     const [currentPage, setCurrentPage] = React.useState(1)
     const [selectedOrder, setSelectedOrder] = React.useState<Order['data'][0] | null>(null)
     const [isModalOpen, setIsModalOpen] = React.useState(false)
     const itemsPerPage = 10
 
-    if (loading && order.data && order.data.length > 0) return <CanceledSkelaton />
+    if (loading && orders && orders.length > 0) return <CanceledSkelaton />
 
-    if (!order.data || order.data.length === 0) {
+    if (!orders || orders.length === 0) {
         return (
             <section className='min-h-full bg-gradient-to-br from-gray-50 via-white to-gray-100/50 py-8'>
                 <div className="container">
@@ -84,8 +85,8 @@ export default function CanceledContent() {
         )
     }
 
-    const filteredOrders = order.data
-        .filter(item => item.transactionStatus === 'cancelled')
+    const filteredOrders = orders
+        .filter(item => item.transactionStatus === 'cancel')
         .filter((item) =>
             item.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||

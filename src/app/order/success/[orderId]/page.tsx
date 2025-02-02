@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
+
 import OrderSuccessClient from './OrderSuccessClient';
+
 import { db } from "@/utils/firebase";
+
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 type Props = {
@@ -36,7 +39,6 @@ export async function generateMetadata(
             },
         };
     } catch {
-        // Fallback metadata if there's an error
         return {
             title: 'Order Details - Allune Mart',
             description: 'View your order details on Allune Mart',

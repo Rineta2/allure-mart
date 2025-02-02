@@ -17,16 +17,17 @@ import { OrderDetailsModal } from '@/components/dashboard/user/order/shipped/hoo
 import Pagination from '@/components/helper/Pagination';
 
 export default function ShippedContent() {
-    const { order, loading } = useFetchOrder();
+    const orderData = useFetchOrder();
+    const { data: orders, loading } = orderData;
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order['data'][0] | null>(null);
     const itemsPerPage = 10;
 
-    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />;
+    if (loading && orders && orders.length > 0) return <OrderSkelaton />;
 
-    const filteredOrders = order.data
+    const filteredOrders = orders
         .filter((item) => item.orderStatus === 'shipped')
         .filter((item) =>
             item.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||

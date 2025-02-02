@@ -12,7 +12,7 @@ import Image from 'next/image'
 
 import { updateOrderStatus } from '@/components/dashboard/seller/order/order/utils/updateOrderStatus'
 
-type OrderStatus = 'pending' | 'processing' | 'packaging' | 'shipped' | 'delivered' | 'completed' | 'cancelled';
+type OrderStatus = 'pending' | 'processing' | 'packaging' | 'shipped' | 'delivered' | 'completed' | 'cancel';
 
 const getStatusColor = (status: string): string => {
     switch (status) {
@@ -28,31 +28,10 @@ const getStatusColor = (status: string): string => {
             return 'bg-teal-100 text-teal-800'
         case 'completed':
             return 'bg-indigo-100 text-indigo-800'
-        case 'cancelled':
+        case 'cancel':
             return 'bg-red-100 text-red-800'
         default:
             return 'bg-gray-100 text-gray-800'
-    }
-}
-
-const getStatusMessage = (status: OrderStatus) => {
-    switch (status) {
-        case 'pending':
-            return 'Order status updated to Pending'
-        case 'processing':
-            return 'Order is now being processed'
-        case 'packaging':
-            return 'Order is being packaged'
-        case 'shipped':
-            return 'Order has been shipped'
-        case 'delivered':
-            return 'Order has been delivered'
-        case 'completed':
-            return 'Order has been completed'
-        case 'cancelled':
-            return 'Order has been cancelled'
-        default:
-            return 'Order status updated'
     }
 }
 
@@ -64,7 +43,7 @@ export default function OrderContent() {
         const fetchOrders = async () => {
             try {
                 const data = await getOrders()
-                const activeOrders = data.filter(order => order.orderStatus !== 'cancelled')
+                const activeOrders = data.filter(order => order.orderStatus !== 'cancel')
                 setOrders(activeOrders)
             } catch (error) {
                 console.error("Error fetching orders:", error)
@@ -81,12 +60,12 @@ export default function OrderContent() {
         try {
             await updateOrderStatus(orderId, newStatus);
             const updatedOrders = await getOrders();
-            const activeOrders = updatedOrders.filter(order => order.orderStatus !== 'cancelled')
+            const activeOrders = updatedOrders.filter(order => order.orderStatus !== 'cancel')
             setOrders(activeOrders);
-            toast.success(getStatusMessage(newStatus))
+            toast.success('Status pesanan berhasil diperbarui');
         } catch (error) {
-            console.error("Error updating status:", error);
-            toast.error("Failed to update order status")
+            console.error('Error updating order status:', error);
+            toast.error('Gagal memperbarui status pesanan');
         }
     };
 
@@ -197,7 +176,7 @@ export default function OrderContent() {
                                             <option value="shipped">Shipped</option>
                                             <option value="delivered">Delivered</option>
                                             <option value="completed">Completed</option>
-                                            <option value="cancelled">Cancelled</option>
+                                            <option value="cancel">Cancelled</option>
                                         </select>
                                     </td>
 
@@ -256,7 +235,7 @@ export default function OrderContent() {
                                             <option value="shipped">Shipped</option>
                                             <option value="delivered">Delivered</option>
                                             <option value="completed">Completed</option>
-                                            <option value="cancelled">Cancelled</option>
+                                            <option value="cancel">Cancelled</option>
                                         </select>
                                     </div>
                                 </div>

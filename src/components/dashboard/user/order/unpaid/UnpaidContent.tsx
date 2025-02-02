@@ -8,8 +8,6 @@ import OrderSkelaton from '@/components/dashboard/user/order/order/OrderSkelaton
 
 import { useFetchOrder } from '@/utils/section/order/useFetch'
 
-import { Order } from '@/utils/section/order/schema/schema'
-
 import Pagination from '@/components/helper/Pagination'
 
 import { usePayment } from '@/components/dashboard/user/order/unpaid/hooks/utils/usePayment'
@@ -21,7 +19,8 @@ import { CancelConfirmationModal } from '@/components/dashboard/user/order/unpai
 import { OrderData } from '@/components/dashboard/user/order/unpaid/hooks/utils/order'
 
 export default function UnpaidContent() {
-    const { order, loading }: { order: Order, loading: boolean } = useFetchOrder()
+    const orderData = useFetchOrder();
+    const { data: orders, loading } = orderData;
     const [searchQuery, setSearchQuery] = React.useState('')
     const [currentPage, setCurrentPage] = React.useState(1)
     const itemsPerPage = 10
@@ -62,10 +61,10 @@ export default function UnpaidContent() {
     }, [isModalOpen])
 
     // Hanya tampilkan skeleton jika loading=true DAN order.data ada/tidak kosong
-    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />
+    if (loading && orders && orders.length > 0) return <OrderSkelaton />
 
     // Tampilkan pesan "no orders" jika tidak ada data
-    if (!order.data || order.data.length === 0) {
+    if (!orders || orders.length === 0) {
         return (
             <section className='min-h-full bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 py-12'>
                 <div className="container">
@@ -125,7 +124,7 @@ export default function UnpaidContent() {
         )
     }
 
-    const filteredOrders = order.data
+    const filteredOrders = orders
         .filter(item => item.transactionStatus === "pending")
         .filter((item) =>
             item.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -164,35 +163,25 @@ export default function UnpaidContent() {
                 },
                 body: JSON.stringify({
                     orderId: orderToCancel,
-                    transactionStatus: 'cancelled',
-                    orderStatus: 'cancelled',
-                    transactionTime: new Date().toISOString(),
                 }),
             });
 
-            const responseText = await response.text();
-            let data;
-            try {
-                data = JSON.parse(responseText);
-            } catch {
-                throw new Error("Invalid response format");
-            }
+            const data = await response.json();
 
             if (response.ok && data.status === 'success') {
                 toast.dismiss(loadingToast);
                 toast.success('Order cancelled successfully');
-                const updatedOrders = order.data.filter(item => item.orderId !== orderToCancel);
-                order.data = updatedOrders;
             } else {
                 toast.dismiss(loadingToast);
                 toast.error(data.message || 'Failed to cancel order');
             }
-        } catch {
+        } catch (error) {
+            console.error('Cancel order error:', error);
             toast.dismiss(loadingToast);
             toast.error('An error occurred while cancelling the order');
         } finally {
-            setShowCancelModal(false)
-            setOrderToCancel(null)
+            setShowCancelModal(false);
+            setOrderToCancel(null);
         }
     }
 

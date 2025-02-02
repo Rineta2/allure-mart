@@ -188,7 +188,8 @@ export default function CheckoutContent() {
                         price: item.price,
                         quantity: item.quantity,
                         name: item.name
-                    }))
+                    })),
+                    userPhotoURL: user?.photoURL || '/default-avatar.png'
                 })
             });
 
@@ -206,7 +207,8 @@ export default function CheckoutContent() {
             return {
                 orderId: orderData.orderId,
                 totalAmount: total,
-                snapToken: transactionData.token
+                snapToken: transactionData.token,
+                userPhotoURL: user?.photoURL || '/default-avatar.png'
             };
         } catch (error) {
             console.error("Error processing order:", error);

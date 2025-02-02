@@ -6,7 +6,7 @@ export type OrderStatus =
   | "shipped" // Dalam pengiriman
   | "delivered" // Sudah diterima
   | "completed" // Selesai
-  | "cancelled"; // Dibatalkan
+  | "cancel"; // Dibatalkan
 
 // Status untuk transaksi pembayaran
 export type TransactionStatus =

@@ -51,15 +51,15 @@ export async function POST(request: Request) {
         case "deny":
         case "cancel":
           transactionStatus = "cancel";
-          orderStatus = "cancelled";
+          orderStatus = "cancel";
           break;
         case "expire":
           transactionStatus = "expired";
-          orderStatus = "cancelled";
+          orderStatus = "cancel";
           break;
         default:
           transactionStatus = "failure";
-          orderStatus = "cancelled";
+          orderStatus = "cancel";
       }
 
       const updateData = {

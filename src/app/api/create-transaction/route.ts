@@ -65,17 +65,37 @@ export async function POST(request: Request) {
       );
     }
 
+    // Truncate item names to max 50 characters and calculate total
+    const processedItems = items.map((item: TransactionItem) => ({
+      id: item.id,
+      price: item.price,
+      quantity: item.quantity,
+      name: item.name.substring(0, 50), // Truncate name to 50 chars
+    }));
+
+    // Calculate total from items
+    const calculatedTotal = processedItems.reduce(
+      (sum: number, item: TransactionItem) => sum + item.price * item.quantity,
+      0
+    );
+
+    // Validate if calculated total matches the provided amount
+    if (calculatedTotal !== amount) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Total amount does not match with items total",
+        },
+        { status: 400 }
+      );
+    }
+
     const parameter = {
       transaction_details: {
         order_id: orderId,
         gross_amount: amount,
       },
-      item_details: items.map((item: TransactionItem) => ({
-        id: item.id,
-        price: item.price,
-        quantity: item.quantity,
-        name: item.name,
-      })),
+      item_details: processedItems,
       credit_card: {
         secure: true,
       },

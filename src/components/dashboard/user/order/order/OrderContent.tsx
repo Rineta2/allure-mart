@@ -8,7 +8,7 @@ import OrderSkelaton from '@/components/dashboard/user/order/order/OrderSkelaton
 
 import { useFetchOrder } from '@/utils/section/order/useFetch'
 
-import { Order, OrderData, OrderItem } from '@/utils/section/order/schema/schema'
+import { OrderData, OrderItem } from '@/utils/section/order/schema/schema'
 
 import Image from 'next/image'
 
@@ -16,22 +16,45 @@ import Pagination from '@/components/helper/Pagination'
 
 import { OrderProgress } from '@/components/dashboard/user/order/order/OrderProgress'
 
+import { StarRating } from '@/components/dashboard/user/order/order/rating/StartRating'
+
+import { useAuth } from '@/components/router/auth/AuthContext'
+
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+
+import { db } from '@/utils/firebase'
+
+import toast from 'react-hot-toast'
+
 export default function OrderContent() {
-    const { order, loading }: { order: Order, loading: boolean } = useFetchOrder()
+    const orderData = useFetchOrder();
+
+    // Destructure dan rename untuk menghindari konflik nama
+    const { data: orders, loading } = orderData;
 
     const [searchQuery, setSearchQuery] = React.useState('')
-
     const [currentPage, setCurrentPage] = React.useState(1)
-
     const itemsPerPage = 12
 
     const [isOpen, setIsOpen] = React.useState(false)
 
     const [selectedOrder, setSelectedOrder] = React.useState<OrderData | null>(null)
 
-    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />
+    const [isRatingModalOpen, setIsRatingModalOpen] = React.useState(false)
+    const [selectedProduct, setSelectedProduct] = React.useState<OrderItem | null>(null)
+    const [reviews, setReviews] = React.useState<{ [key: string]: string }>({})
+    const [ratings, setRatings] = React.useState<{
+        [key: string]: {
+            productQuality: number;
+            sellerService: number;
+            shippingSpeed: number;
+        };
+    }>({})
+    const { user, loading: authLoading } = useAuth()
 
-    if (!order.data || order.data.length === 0) {
+    if (loading) return <OrderSkelaton />
+
+    if (!orders || orders.length === 0) {
         return (
             <section className='min-h-full bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 py-12'>
                 <div className="container">
@@ -91,7 +114,7 @@ export default function OrderContent() {
         )
     }
 
-    const filteredOrders = order.data
+    const filteredOrders = orders
         .filter((item) =>
             item.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -99,7 +122,6 @@ export default function OrderContent() {
             item.phone.toLowerCase().includes(searchQuery.toLowerCase())
         )
         .sort((a, b) => {
-            // Sort by transaction time in descending order (newest first)
             const timeA = new Date(a.transactionTime || 0).getTime();
             const timeB = new Date(b.transactionTime || 0).getTime();
             return timeB - timeA;
@@ -118,6 +140,169 @@ export default function OrderContent() {
     function openModal(order: OrderData) {
         setSelectedOrder(order)
         setIsOpen(true)
+    }
+
+    const handleProductSelect = (product: OrderItem) => {
+        if (!product.hasRating) {
+            setSelectedProduct(product)
+            // Initialize rating dan review jika belum ada
+            if (!ratings[product.id]) {
+                setRatings(prev => ({
+                    ...prev,
+                    [product.id]: {
+                        productQuality: 0,
+                        sellerService: 0,
+                        shippingSpeed: 0
+                    }
+                }))
+            }
+            if (!reviews[product.id]) {
+                setReviews(prev => ({
+                    ...prev,
+                    [product.id]: ''
+                }))
+            }
+        }
+    }
+
+    const handleRatingChange = (productId: string, type: keyof typeof ratings[string], value: number) => {
+        setRatings(prev => ({
+            ...prev,
+            [productId]: {
+                ...prev[productId],
+                [type]: value
+            }
+        }))
+    }
+
+    const handleReviewChange = (productId: string, value: string) => {
+        setReviews(prev => ({
+            ...prev,
+            [productId]: value
+        }))
+    }
+
+    const handleSubmitRating = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (authLoading) {
+            toast.error('Mohon tunggu sebentar...')
+            return
+        }
+
+        if (!user) {
+            toast.error('Mohon login terlebih dahulu')
+            return
+        }
+
+        if (!selectedOrder) {
+            toast.error('Data order tidak ditemukan')
+            return
+        }
+
+        try {
+            // Dapatkan semua produk yang belum dirating
+            const unratedProducts = selectedOrder.items.filter(product => !product.hasRating)
+
+            // Dapatkan semua produk yang memiliki rating valid
+            const productsToRate = unratedProducts.filter(product => {
+                const rating = ratings[product.id]
+                const review = reviews[product.id]
+                return rating &&
+                    review &&
+                    review.trim().length >= 10 &&
+                    rating.productQuality > 0 &&
+                    rating.sellerService > 0 &&
+                    rating.shippingSpeed > 0
+            })
+
+            if (productsToRate.length === 0) {
+                toast.error('Mohon lengkapi penilaian minimal untuk satu produk')
+                return
+            }
+
+            // Loading state
+            const loadingToast = toast.loading('Mengirim penilaian...')
+
+            // Array untuk menyimpan semua produk yang berhasil dirating
+            const updatedProducts = [...selectedOrder.items]
+
+            // Kirim semua rating sekaligus
+            for (const product of productsToRate) {
+                const currentRating = ratings[product.id]
+                const currentReview = reviews[product.id]
+
+                const averageRating = (
+                    currentRating.productQuality +
+                    currentRating.sellerService +
+                    currentRating.shippingSpeed
+                ) / 3
+
+                const ratingData = {
+                    uid: user.uid,
+                    displayName: user.displayName || 'Anonymous',
+                    photoURL: user.photoURL || '/default-avatar.png',
+                    rating: averageRating,
+                    review: currentReview.trim(),
+                    productQuality: currentRating.productQuality,
+                    sellerService: currentRating.sellerService,
+                    shippingSpeed: currentRating.shippingSpeed,
+                    orderId: selectedOrder.orderId,
+                    productId: product.id,
+                    productName: product.name,
+                    productThumbnail: product.thumbnail,
+                    createdAt: serverTimestamp()
+                }
+
+                // Simpan rating ke products collection
+                await addDoc(collection(db, 'products', product.id, 'ratings'), ratingData)
+
+                // Update status produk di array lokal
+                const productIndex = updatedProducts.findIndex(item => item.id === product.id)
+                if (productIndex !== -1) {
+                    updatedProducts[productIndex] = { ...updatedProducts[productIndex], hasRating: true }
+                }
+            }
+
+            // Update semua produk sekaligus di order
+            await updateDoc(doc(db, 'orders', selectedOrder.id), {
+                items: updatedProducts
+            })
+
+            // Reset states
+            setRatings({})
+            setReviews({})
+            setSelectedProduct(null)
+            setIsRatingModalOpen(false)
+
+            // Update local state
+            if (selectedOrder) {
+                setSelectedOrder({
+                    ...selectedOrder,
+                    items: updatedProducts
+                })
+            }
+
+            // Dismiss loading toast dan tampilkan success
+            toast.dismiss(loadingToast)
+            toast.success(`Berhasil mengirim ${productsToRate.length} penilaian!`)
+
+        } catch (error) {
+            console.error('Error submitting ratings:', error)
+            toast.dismiss()
+            if (error instanceof Error) {
+                toast.error(`Gagal mengirim penilaian: ${error.message}`)
+            } else {
+                toast.error('Gagal mengirim penilaian. Silakan coba lagi.')
+            }
+        }
+    }
+
+    // Update button click handler
+    const handleRatingClick = (e: React.MouseEvent, order: OrderData) => {
+        e.stopPropagation();
+        setSelectedOrder(order);
+        setIsRatingModalOpen(true);
     }
 
     return (
@@ -190,17 +375,31 @@ export default function OrderContent() {
                                         >
                                             Hubungi Penjual
                                         </button>
-                                        <button
-                                            className="flex-1 px-4 py-2 text-sm border border-gray-200 bg-white text-gray-700 rounded-lg
-                                            font-medium hover:bg-gray-50 transition-all duration-300
-                                            hover:border-gray-300 shadow-sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                // Add show ratings logic
-                                            }}
-                                        >
-                                            Tampilkan Penilaian
-                                        </button>
+
+                                        {item.orderStatus === 'completed' && (
+                                            item.hasRating ? (
+                                                <button
+                                                    className="flex-1 px-4 py-2 text-sm border border-gray-200 bg-white text-gray-700 rounded-lg
+                                                    font-medium hover:bg-gray-50 transition-all duration-300
+                                                    hover:border-gray-300 shadow-sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.location.href = '/shop';
+                                                    }}
+                                                >
+                                                    Beli Lagi
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="flex-1 px-4 py-2 text-sm border border-gray-200 bg-white text-gray-700 rounded-lg
+                                                    font-medium hover:bg-gray-50 transition-all duration-300
+                                                    hover:border-gray-300 shadow-sm"
+                                                    onClick={(e) => handleRatingClick(e, item)}
+                                                >
+                                                    Tambahkan Penilaian
+                                                </button>
+                                            )
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -339,6 +538,14 @@ export default function OrderContent() {
                                                                                 <div>
                                                                                     <p className="font-medium text-gray-800">{product.name}</p>
                                                                                     <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
+                                                                                    {!product.hasRating && selectedOrder.orderStatus === 'completed' && (
+                                                                                        <button
+                                                                                            onClick={(e) => handleRatingClick(e, selectedOrder)}
+                                                                                            className="mt-2 text-sm text-blue-600 hover:text-blue-700"
+                                                                                        >
+                                                                                            Beri Penilaian
+                                                                                        </button>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                             <span className="font-medium text-gray-800">
@@ -403,6 +610,176 @@ export default function OrderContent() {
                                                     </div>
                                                 </>
                                             )}
+                                        </Dialog.Panel>
+                                    </Transition.Child>
+                                </div>
+                            </div>
+                        </Dialog>
+                    </Transition>
+
+                    {/* Rating Modal */}
+                    <Transition appear show={isRatingModalOpen} as={Fragment}>
+                        <Dialog as="div" className="relative z-50" onClose={() => setIsRatingModalOpen(false)}>
+                            <Transition.Child
+                                as={Fragment}
+                                enter="ease-out duration-300"
+                                enterFrom="opacity-0"
+                                enterTo="opacity-100"
+                                leave="ease-in duration-200"
+                                leaveFrom="opacity-100"
+                                leaveTo="opacity-0"
+                            >
+                                <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+                            </Transition.Child>
+
+                            <div className="fixed inset-0 overflow-y-auto">
+                                <div className="flex min-h-full items-center justify-center text-center">
+                                    <Transition.Child
+                                        as={Fragment}
+                                        enter="ease-out duration-300"
+                                        enterFrom="opacity-0 scale-95"
+                                        enterTo="opacity-100 scale-100"
+                                        leave="ease-in duration-200"
+                                        leaveFrom="opacity-100 scale-100"
+                                        leaveTo="opacity-0 scale-95"
+                                    >
+                                        <Dialog.Panel className="w-full h-full max-h-full sm:max-h-[95vh] max-w-5xl transform overflow-hidden bg-white text-left align-middle transition-all
+                                            sm:h-auto sm:rounded-2xl sm:border sm:shadow-xl">
+                                            {/* Header */}
+                                            <div className="border-b border-gray-100 px-6 py-4">
+                                                <Dialog.Title className="text-lg font-semibold text-gray-900">
+                                                    Beri Penilaian Produk
+                                                </Dialog.Title>
+                                            </div>
+
+                                            {/* Scrollable Content */}
+                                            <div className="max-h-[calc(100vh-8rem)] overflow-y-auto px-6 py-6">
+                                                {/* List semua produk */}
+                                                <div className="space-y-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    {selectedOrder?.items.map((product, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className={`p-4 rounded-xl border transition-all
+                                                                ${product.hasRating
+                                                                    ? 'border-gray-200 bg-gray-50/50'
+                                                                    : selectedProduct?.id === product.id
+                                                                        ? 'border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10'
+                                                                        : 'border-gray-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/10'}`}
+                                                            onClick={() => handleProductSelect(product)}
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                                                                    <Image
+                                                                        src={product.thumbnail}
+                                                                        alt={product.name}
+                                                                        fill
+                                                                        className="object-cover"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="font-medium text-gray-900 truncate">{product.name}</h4>
+                                                                    <p className="text-sm text-gray-500 mt-1">Qty: {product.quantity}</p>
+                                                                    {product.hasRating ? (
+                                                                        <span className="inline-flex items-center gap-1.5 mt-2 text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                                                                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                                                <path d="M7 13L10 16L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                                            </svg>
+                                                                            Sudah dinilai
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1.5 mt-2 text-sm text-blue-600">
+                                                                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                                                <path d="M15 12H9M12 9V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                                            </svg>
+                                                                            Klik untuk menilai
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Form rating */}
+                                                {selectedProduct && !selectedProduct.hasRating && (
+                                                    <div className="mt-8 border-t border-gray-100 pt-8">
+                                                        <h3 className="text-lg font-medium text-gray-900 mb-6">
+                                                            Penilaian untuk {selectedProduct.name}
+                                                        </h3>
+                                                        <form onSubmit={handleSubmitRating} className="space-y-6">
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Kualitas Produk
+                                                                </label>
+                                                                <StarRating
+                                                                    value={ratings[selectedProduct.id]?.productQuality || 0}
+                                                                    onChange={(value) => handleRatingChange(selectedProduct.id, 'productQuality', value)}
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Pelayanan Penjual
+                                                                </label>
+                                                                <StarRating
+                                                                    value={ratings[selectedProduct.id]?.sellerService || 0}
+                                                                    onChange={(value) => handleRatingChange(selectedProduct.id, 'sellerService', value)}
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Kecepatan Pengiriman
+                                                                </label>
+                                                                <StarRating
+                                                                    value={ratings[selectedProduct.id]?.shippingSpeed || 0}
+                                                                    onChange={(value) => handleRatingChange(selectedProduct.id, 'shippingSpeed', value)}
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                    Ulasan
+                                                                </label>
+                                                                <textarea
+                                                                    value={reviews[selectedProduct.id] || ''}
+                                                                    onChange={(e) => handleReviewChange(selectedProduct.id, e.target.value)}
+                                                                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
+                                                                    placeholder:text-gray-400 text-gray-600"
+                                                                    placeholder="Bagikan pengalaman Anda dengan produk ini..."
+                                                                    rows={4}
+                                                                />
+                                                            </div>
+
+                                                            {/* Footer di dalam form */}
+                                                            <div className="sticky bottom-0 mt-8 -mx-6 px-6 py-4 bg-gray-50/80 backdrop-blur-sm border-t border-gray-100">
+                                                                <div className="flex justify-end gap-3">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setIsRatingModalOpen(false)
+                                                                            setSelectedProduct(null)
+                                                                            setRatings({})
+                                                                            setReviews({})
+                                                                        }}
+                                                                        className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 
+                                                                        rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                                                                    >
+                                                                        Batal
+                                                                    </button>
+                                                                    <button
+                                                                        type="submit"
+                                                                        className="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg 
+                                                                        hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                    >
+                                                                        Kirim Semua Penilaian
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </Dialog.Panel>
                                     </Transition.Child>
                                 </div>

@@ -74,7 +74,9 @@ export const addressSchema = z.object({
 export type Address = z.infer<typeof addressSchema>;
 
 export type CheckoutFormData = {
+  uid: string;
   fullName: string;
+  photoURL: string;
   phone: string;
   email: string;
   address: string;
@@ -133,6 +135,7 @@ export interface MidtransResult {
 export interface OrderResponse {
   orderId: string;
   totalAmount: number;
+  userPhotoURL: string;
   snapToken: string;
 }
 

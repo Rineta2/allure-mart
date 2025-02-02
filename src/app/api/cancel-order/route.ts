@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
+    console.log("Cancel order API called");
     const { orderId } = await request.json();
+    console.log("Order ID:", orderId);
 
     if (!orderId) {
+      console.log("Order ID is missing");
       return NextResponse.json(
         {
           status: "error",
@@ -19,7 +22,17 @@ export async function POST(request: Request) {
     const host = request.headers.get("host") || "localhost:3000";
     const baseUrl = `${protocol}://${host}`;
 
-    // Update the request body to include all necessary fields
+    // Prepare the data according to the schema requirements
+    const updateData = {
+      orderId,
+      transactionStatus: "cancel",
+      orderStatus: "cancel",
+      transactionId: `CANCELLED_${orderId}_${Date.now()}`,
+      transactionTime: new Date().toISOString(),
+    };
+
+    console.log("Update data:", updateData);
+
     const updateResponse = await fetch(
       `${baseUrl}/api/update-transaction-status`,
       {
@@ -27,28 +40,22 @@ export async function POST(request: Request) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          orderId,
-          transactionStatus: "cancelled",
-          orderStatus: "cancelled",
-          transactionTime: new Date().toISOString(),
-          transactionId: `CANCELLED_${orderId}_${Date.now()}`,
-          paymentMethod: "cancelled",
-          cancelReason: "Cancelled by user",
-        }),
+        body: JSON.stringify(updateData),
       }
     );
 
     // Try to parse the response as JSON
     let responseData;
     try {
-      const responseText = await updateResponse.text();
-      responseData = JSON.parse(responseText);
-    } catch {
+      responseData = await updateResponse.json();
+      console.log("Update response:", responseData);
+    } catch (error) {
+      console.error("Failed to parse response:", error);
       throw new Error("Invalid response format from update-transaction-status");
     }
 
     if (!updateResponse.ok) {
+      console.error("Update failed:", responseData);
       throw new Error(
         `Failed to update transaction status: ${
           responseData.message || "Unknown error"
@@ -61,6 +68,7 @@ export async function POST(request: Request) {
       message: "Order cancelled successfully",
     });
   } catch (error) {
+    console.error("Cancel order API error:", error);
     return NextResponse.json(
       {
         status: "error",
