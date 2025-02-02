@@ -32,7 +32,6 @@ export async function POST(request: Request) {
           transactionStatus: "cancelled",
           orderStatus: "cancelled",
           transactionTime: new Date().toISOString(),
-          // Add a dummy transaction ID for cancelled orders
           transactionId: `CANCELLED_${orderId}_${Date.now()}`,
           paymentMethod: "cancelled",
           cancelReason: "Cancelled by user",

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 
 import Link from 'next/link';
 
-import { FiLogOut } from 'react-icons/fi';
+import { FiLogOut, FiUser } from 'react-icons/fi';
 
 import Image from 'next/image';
 
@@ -86,13 +86,19 @@ export default function Header({ onSidebarToggle }: HeaderProps) {
             {/* Profile Section - Updated design */}
             <div className="p-4 mt-2 mb-2 border-b border-slate-200">
                 <div className="flex items-center gap-3">
-                    <Image
-                        src={user?.photoURL || '/images/default-profile.png'}
-                        alt="Profile"
-                        width={48}
-                        height={48}
-                        className="rounded-xl object-cover w-12 h-12"
-                    />
+                    {user?.photoURL ? (
+                        <Image
+                            src={user.photoURL}
+                            alt="Profile"
+                            width={48}
+                            height={48}
+                            className="rounded-xl object-cover w-12 h-12"
+                        />
+                    ) : (
+                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                            <FiUser className="w-6 h-6 text-slate-500" />
+                        </div>
+                    )}
                     <div>
                         <p className="text-[15px] font-semibold text-slate-900">{user?.displayName}</p>
                         <p className="text-[12px] text-slate-500">{user?.role}</p>

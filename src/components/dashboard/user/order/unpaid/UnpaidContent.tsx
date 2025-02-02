@@ -61,7 +61,69 @@ export default function UnpaidContent() {
         }
     }, [isModalOpen])
 
-    if (loading) return <OrderSkelaton />
+    // Hanya tampilkan skeleton jika loading=true DAN order.data ada/tidak kosong
+    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />
+
+    // Tampilkan pesan "no orders" jika tidak ada data
+    if (!order.data || order.data.length === 0) {
+        return (
+            <section className='min-h-full bg-gradient-to-b from-gray-50/50 via-white to-gray-50/30 py-12'>
+                <div className="container">
+                    <div className="flex flex-col items-center justify-center gap-8 max-w-md mx-auto text-center">
+                        <div className="relative">
+                            {/* Background decorative elements */}
+                            <div className="absolute inset-0 -z-10">
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl"></div>
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-purple-100/40 rounded-full blur-3xl"></div>
+                            </div>
+
+                            {/* Main illustration */}
+                            <svg
+                                className="w-56 h-56 text-gray-600"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M4.5 6.5L9 4M9 4L14.5 6.5M9 4V15.5M14.5 6.5L19.5 4M14.5 6.5V15.5M19.5 4V13.5M19.5 13.5L14.5 15.5M19.5 13.5L9 15.5M14.5 15.5L9 15.5"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="animate-draw"
+                                />
+                                <path
+                                    d="M7 8L11 6.5M16.5 8L12.5 6.5M7 11L11 9.5M16.5 11L12.5 9.5M7 14L11 12.5M16.5 14L12.5 12.5"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    opacity="0.5"
+                                />
+                            </svg>
+                        </div>
+
+                        <div className="space-y-3">
+                            <h3 className="text-2xl font-bold text-gray-800">No Unpaid Orders</h3>
+                            <p className="text-gray-500 leading-relaxed">
+                                You don&apos;t have any pending payments at the moment. All your orders have been paid!
+                            </p>
+                        </div>
+
+                        <button
+                            onClick={() => window.location.href = '/shop'}
+                            className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl
+                            font-medium hover:from-blue-700 hover:to-blue-800 transition-all duration-300
+                            shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40
+                            hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+            </section>
+        )
+    }
 
     const filteredOrders = order.data
         .filter(item => item.transactionStatus === "pending")

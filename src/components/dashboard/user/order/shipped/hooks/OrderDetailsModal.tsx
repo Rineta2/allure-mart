@@ -1,8 +1,13 @@
 import React, { Fragment } from 'react';
+
 import { Dialog, Transition } from '@headlessui/react';
+
 import { Order } from '@/utils/section/order/schema/schema';
+
 import { OrderProgress } from '@/components/dashboard/user/order/shipped/hooks/OrderProgress';
+
 import Image from 'next/image';
+
 import { format } from 'date-fns';
 
 interface OrderDetailsModalProps {

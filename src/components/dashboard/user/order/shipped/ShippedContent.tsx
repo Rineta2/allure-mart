@@ -24,7 +24,7 @@ export default function ShippedContent() {
     const [selectedOrder, setSelectedOrder] = useState<Order['data'][0] | null>(null);
     const itemsPerPage = 10;
 
-    if (loading) return <OrderSkelaton />;
+    if (loading && order.data && order.data.length > 0) return <OrderSkelaton />;
 
     const filteredOrders = order.data
         .filter((item) => item.orderStatus === 'shipped')

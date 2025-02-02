@@ -22,6 +22,8 @@ import ProfileSkelaton from '@/components/dashboard/user/profile/profile/Profile
 
 import { UserProfile } from "@/components/dashboard/user/profile/profile/schema/schema"
 
+import { FiUser } from 'react-icons/fi';
+
 export default function ProfileContent() {
     const { user } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -188,14 +190,21 @@ export default function ProfileContent() {
                             {/* Left side - Profile Image */}
                             <div className="flex flex-col items-center space-y-6 order-1 lg:order-2">
                                 <div className="relative w-40 h-40 sm:w-48 sm:h-48 group">
-                                    <Image
-                                        src={profile.photoURL || '/images/default-profile.png'}
-                                        alt="Profile"
-                                        width={500}
-                                        height={500}
-                                        className="rounded-3xl object-cover shadow-lg w-full h-full 
-                                        transition-transform duration-300 group-hover:scale-105"
-                                    />
+                                    {profile.photoURL ? (
+                                        <Image
+                                            src={profile.photoURL}
+                                            alt="Profile"
+                                            width={500}
+                                            height={500}
+                                            className="rounded-3xl object-cover shadow-lg w-full h-full 
+                                            transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full rounded-3xl bg-slate-100 flex items-center justify-center 
+                                        shadow-lg transition-transform duration-300 group-hover:scale-105">
+                                            <FiUser className="w-20 h-20 text-slate-500" />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="text-center w-full">
                                     <input

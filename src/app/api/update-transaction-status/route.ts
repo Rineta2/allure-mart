@@ -14,6 +14,7 @@ import { z } from "zod";
 const transactionUpdateSchema = z.object({
   orderId: z.string().nonempty("Order ID is required"),
   transactionStatus: z.string().optional(),
+  orderStatus: z.string().optional(),
   transactionId: z.string().nonempty("Transaction ID is required"),
   transactionTime: z.string().nonempty("Transaction time is required"),
 });
@@ -52,6 +53,10 @@ export async function POST(request: Request) {
 
     const updateData = {
       transactionStatus: validatedData.transactionStatus || "pending",
+      orderStatus:
+        validatedData.orderStatus ||
+        validatedData.transactionStatus ||
+        "pending",
       updatedAt: serverTimestamp(),
       transactionId: validatedData.transactionId,
       transactionTime: validatedData.transactionTime,
