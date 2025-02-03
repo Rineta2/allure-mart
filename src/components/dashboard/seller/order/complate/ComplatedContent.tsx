@@ -14,6 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/h
 
 import logo from "../../../../../../public/icon.png"
 
+import JsBarcode from 'jsbarcode'
+
 type OrderItem = {
     name: string;
     thumbnail: string;
@@ -27,6 +29,7 @@ export default function ComplatedContent() {
     const [selectedImages, setSelectedImages] = useState<OrderItem[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
+    const [selectedOrders, setSelectedOrders] = useState<string[]>([])
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -51,7 +54,45 @@ export default function ComplatedContent() {
             order.id.toString().includes(searchQuery)
     })
 
-    const handlePrint = (order: Order) => {
+    const generateBarcodeDataUrl = (orderId: string) => {
+        const canvas = document.createElement('canvas');
+        JsBarcode(canvas, orderId, {
+            format: "CODE128",
+            width: 1.5,
+            height: 40,
+            displayValue: true,
+            fontSize: 8,
+            margin: 5
+        });
+        return canvas.toDataURL('image/png');
+    };
+
+    const getLogoDataUrl = () => {
+        return new Promise<string>((resolve) => {
+            const img = document.createElement('img');
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                } else {
+                    resolve('');
+                }
+            };
+            img.src = logo.src;
+        });
+    };
+
+    const handlePrint = async (order: Order) => {
+        const [barcodeDataUrl, logoDataUrl] = await Promise.all([
+            generateBarcodeDataUrl(order.id),
+            getLogoDataUrl()
+        ]);
+
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
 
@@ -71,19 +112,16 @@ export default function ComplatedContent() {
                     .container {
                         width: 105mm;
                         height: 148mm;
-                        margin: 0 auto;
+                        margin: 0;
                         padding: 5mm;
                         box-sizing: border-box;
+                        border: 1px solid #000;
                     }
                     .header {
-                        display: flex;
-                        align-items: center;
-                        justify-content: space-between;
+                        text-align: left;
                         margin-bottom: 3mm;
                         padding-bottom: 2mm;
                         border-bottom: 0.5px solid #e5e7eb;
-                    }
-                    .logo-container {
                         display: flex;
                         align-items: center;
                         gap: 2mm;
@@ -91,40 +129,43 @@ export default function ComplatedContent() {
                     .logo {
                         width: 8mm;
                         height: 8mm;
+                        object-fit: contain;
+                    }
+                    .header-text {
+                        flex: 1;
                     }
                     .store-name {
-                        font-size: 10px;
+                        font-size: 12px;
                         font-weight: 700;
-                        color: #111827;
                     }
                     .order-number {
                         font-size: 8px;
-                        color: #6b7280;
+                        color: #000;
+                        margin-top: 1mm;
                     }
                     .barcode-section {
-                        background: #f9fafb;
-                        padding: 2mm;
-                        border-radius: 1mm;
                         text-align: center;
-                        margin-bottom: 3mm;
+                        margin: 3mm 0;
+                        padding: 2mm;
+                        border: 0.5px solid #e5e7eb;
+                        border-radius: 2mm;
                     }
-                    .barcode {
-                        font-family: monospace;
-                        font-size: 10px;
-                        letter-spacing: 0.5mm;
+                    .barcode-section img {
+                        width: 90%;
+                        max-height: 15mm;
                     }
                     .section {
                         margin-bottom: 3mm;
-                        background: #ffffff;
-                        border-radius: 1mm;
                         padding: 2mm;
                         border: 0.5px solid #e5e7eb;
+                        border-radius: 2mm;
                     }
                     .section-title {
                         font-size: 9px;
                         font-weight: 600;
-                        color: #111827;
                         margin-bottom: 2mm;
+                        padding-bottom: 1mm;
+                        border-bottom: 0.5px solid #e5e7eb;
                     }
                     .info-grid {
                         display: grid;
@@ -133,30 +174,36 @@ export default function ComplatedContent() {
                         font-size: 8px;
                     }
                     .label {
-                        color: #6b7280;
+                        font-weight: 500;
                     }
                     .value {
-                        color: #111827;
+                        color: #000;
+                    }
+                    .product-list {
+                        margin-top: 2mm;
                     }
                     .product-item {
                         display: flex;
                         justify-content: space-between;
                         padding: 1mm 0;
                         border-bottom: 0.5px solid #e5e7eb;
-                        font-size: 8px;
                     }
                     .product-item:last-child {
                         border-bottom: none;
                     }
-                    .total-section {
-                        text-align: right;
-                        padding-top: 2mm;
-                        border-top: 0.5px solid #e5e7eb;
+                    .product-name {
+                        font-weight: 500;
                     }
-                    .total-amount {
-                        font-size: 10px;
+                    .product-price {
+                        text-align: right;
+                    }
+                    .total-section {
+                        margin-top: 2mm;
+                        padding-top: 2mm;
+                        text-align: right;
                         font-weight: 700;
-                        color: #111827;
+                        font-size: 9px;
+                        border-top: 0.5px solid #e5e7eb;
                     }
                     @media print {
                         @page {
@@ -176,15 +223,15 @@ export default function ComplatedContent() {
             <body>
                 <div class="container">
                     <div class="header">
-                        <div class="logo-container">
-                            <img src="${logo.src}" alt="Logo" class="logo">
-                            <div class="store-name">Toko Berkah</div>
+                        <img src="${logoDataUrl}" alt="Logo" class="logo">
+                        <div class="header-text">
+                            <div class="store-name">ALLURE MART</div>
+                            <div class="order-number">${order.id}</div>
                         </div>
-                        <div class="order-number">Order #${order.id}</div>
                     </div>
 
                     <div class="barcode-section">
-                        <div class="barcode">${order.id}</div>
+                        <img src="${barcodeDataUrl}" alt="Barcode ${order.id}">
                     </div>
 
                     <div class="section">
@@ -192,14 +239,10 @@ export default function ComplatedContent() {
                         <div class="info-grid">
                             <div class="label">Pengirim:</div>
                             <div class="value">ALLURE MART</div>
-                            <div class="label">Penerima:</div>
-                            <div class="value">${order.fullName}</div>
                             <div class="label">Alamat:</div>
-                            <div class="value">${order.address}, ${order.addressDetail}</div>
+                            <div class="value">${order.address}</div>
                             <div class="label">Kota:</div>
                             <div class="value">${order.city}</div>
-                            <div class="label">Provinsi:</div>
-                            <div class="value">${order.province}</div>
                             <div class="label">Kode Pos:</div>
                             <div class="value">${order.zipCode}</div>
                             <div class="label">No. Telepon:</div>
@@ -209,21 +252,27 @@ export default function ComplatedContent() {
 
                     <div class="section">
                         <div class="section-title">Detail Produk</div>
-                        ${order.items.map(item => `
-                            <div class="product-item">
-                                <div>
-                                    <div style="font-weight: 500; color: #111827;">${item.name}</div>
-                                    <div style="color: #6b7280; font-size: 7px;">${item.quantity}x @ Rp ${item.price.toLocaleString()}</div>
+                        <div class="product-list">
+                            ${order.items.map(item => `
+                                <div class="product-item">
+                                    <div class="product-name">
+                                        ${item.name}
+                                        <div style="font-size: 7px; color: #666;">
+                                            ${item.quantity}x @ Rp ${item.price.toLocaleString()}
+                                        </div>
+                                    </div>
+                                    <div class="product-price">
+                                        Rp ${(item.quantity * item.price).toLocaleString()}
+                                    </div>
                                 </div>
-                                <div style="font-weight: 500; color: #111827;">
-                                    Rp ${(item.quantity * item.price).toLocaleString()}
+                            `).join('')}
+                            
+                            <div class="total-section">
+                                <div style="margin-bottom: 1mm; font-size: 8px;">Total Pembayaran</div>
+                                <div>
+                                    Rp ${order.totalAmount.toLocaleString()}
                                 </div>
                             </div>
-                        `).join('')}
-                        
-                        <div class="total-section">
-                            <div style="color: #6b7280; margin-bottom: 1mm; font-size: 8px;">Total Pembayaran</div>
-                            <div class="total-amount">Rp ${order.totalAmount.toLocaleString()}</div>
                         </div>
                     </div>
                 </div>
@@ -234,6 +283,218 @@ export default function ComplatedContent() {
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.print();
+    };
+
+    const handlePrintSelected = async () => {
+        const logoDataUrl = await getLogoDataUrl();
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const selectedOrdersData = selectedOrders
+            .map(orderId => orders.find(o => o.id.toString() === orderId))
+            .filter(order => order) as Order[];
+
+        const printContent = `
+            <html>
+            <head>
+                <title>Multiple Orders</title>
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+                    body { 
+                        font-family: 'Inter', sans-serif;
+                        padding: 0;
+                        margin: 0;
+                        background: #fff;
+                        font-size: 8px;
+                    }
+                    .container {
+                        width: 105mm;
+                        height: 148mm;
+                        margin: 0 auto;
+                        padding: 5mm;
+                        box-sizing: border-box;
+                        page-break-after: always;
+                        border: 1px solid #000;
+                    }
+                    .header {
+                        text-align: left;
+                        margin-bottom: 3mm;
+                        padding-bottom: 2mm;
+                        border-bottom: 0.5px solid #e5e7eb;
+                        display: flex;
+                        align-items: center;
+                        gap: 2mm;
+                    }
+                    .logo {
+                        width: 8mm;
+                        height: 8mm;
+                        object-fit: contain;
+                    }
+                    .header-text {
+                        flex: 1;
+                    }
+                    .store-name {
+                        font-size: 12px;
+                        font-weight: 700;
+                    }
+                    .order-number {
+                        font-size: 8px;
+                        color: #000;
+                        margin-top: 1mm;
+                    }
+                    .barcode-section {
+                        text-align: center;
+                        margin: 3mm 0;
+                        padding: 2mm;
+                        border: 0.5px solid #e5e7eb;
+                        border-radius: 2mm;
+                    }
+                    .barcode-section img {
+                        width: auto;
+                        max-width: 90%;
+                        height: 15mm;
+                        object-fit: contain;
+                    }
+                    .section {
+                        margin-bottom: 3mm;
+                        padding: 2mm;
+                        border: 0.5px solid #e5e7eb;
+                        border-radius: 2mm;
+                    }
+                    .section-title {
+                        font-size: 9px;
+                        font-weight: 600;
+                        margin-bottom: 2mm;
+                        padding-bottom: 1mm;
+                        border-bottom: 0.5px solid #e5e7eb;
+                    }
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: 20mm 1fr;
+                        gap: 1mm;
+                    }
+                    .label {
+                        font-weight: 500;
+                    }
+                    .value {
+                        color: #000;
+                    }
+                    .product-list {
+                        margin-top: 2mm;
+                    }
+                    .product-item {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 1mm 0;
+                        border-bottom: 0.5px solid #e5e7eb;
+                    }
+                    .product-item:last-child {
+                        border-bottom: none;
+                    }
+                    .total-section {
+                        margin-top: 2mm;
+                        padding-top: 2mm;
+                        text-align: right;
+                        font-weight: 700;
+                        font-size: 9px;
+                        border-top: 0.5px solid #e5e7eb;
+                    }
+                    @media print {
+                        @page {
+                            size: 105mm 148mm;
+                            margin: 0;
+                        }
+                        html, body {
+                            width: 105mm;
+                            height: 148mm;
+                        }
+                        .container {
+                            page-break-after: always;
+                        }
+                        .container:last-child {
+                            page-break-after: avoid;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                ${selectedOrdersData.map(order => {
+            const barcodeDataUrl = generateBarcodeDataUrl(order.id);
+            return `
+                        <div class="container">
+                            <div class="header">
+                                <img src="${logoDataUrl}" alt="Logo" class="logo">
+                                <div class="header-text">
+                                    <div class="store-name">ALLURE MART</div>
+                                    <div class="order-number">${order.id}</div>
+                                </div>
+                            </div>
+
+                            <div class="barcode-section">
+                                <img src="${barcodeDataUrl}" alt="Barcode ${order.id}">
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">Informasi Pengiriman</div>
+                                <div class="info-grid">
+                                    <div class="label">Pengirim:</div>
+                                    <div class="value">ALLURE MART</div>
+                                    <div class="label">Alamat:</div>
+                                    <div class="value">${order.address}</div>
+                                    <div class="label">Kota:</div>
+                                    <div class="value">${order.city}</div>
+                                    <div class="label">Kode Pos:</div>
+                                    <div class="value">${order.zipCode}</div>
+                                    <div class="label">No. Telepon:</div>
+                                    <div class="value">${order.phone}</div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <div class="section-title">Detail Produk</div>
+                                <div class="product-list">
+                                    ${order.items.map(item => `
+                                        <div class="product-item">
+                                            <div class="product-name">
+                                                ${item.name}
+                                                <div style="font-size: 7px; color: #666;">
+                                                    ${item.quantity}x @ Rp ${item.price.toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <div class="product-price">
+                                                Rp ${(item.quantity * item.price).toLocaleString()}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                    
+                                    <div class="total-section">
+                                        <div style="margin-bottom: 1mm; font-size: 8px;">Total Pembayaran</div>
+                                        <div>
+                                            Rp ${order.totalAmount.toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+        }).join('')}
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            const allOrderIds = filteredOrders.map(order => order.id.toString());
+            setSelectedOrders(allOrderIds);
+        } else {
+            setSelectedOrders([]);
+        }
     };
 
     if (loading) {
@@ -250,20 +511,53 @@ export default function ComplatedContent() {
                             <p className="text-base text-gray-600">Daftar pesanan yang telah selesai</p>
                         </div>
 
-                        <input
-                            placeholder="Cari pesanan"
-                            className="w-full max-w-full sm:max-w-xs p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                        <div className="flex w-fit gap-4 items-center">
+                            <button
+                                onClick={() => handleSelectAll(selectedOrders.length !== filteredOrders.length)}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+                            >
+                                {selectedOrders.length === filteredOrders.length ? 'Batal Pilih Semua' : 'Pilih Semua'}
+                            </button>
+
+                            {selectedOrders.length > 0 && (
+                                <button
+                                    onClick={handlePrintSelected}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                >
+                                    Cetak {selectedOrders.length} Label
+                                </button>
+                            )}
+
+                            <input
+                                placeholder="Cari pesanan"
+                                className="w-full max-w-full sm:max-w-fit p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="flex flex-wrap gap-6">
                         {filteredOrders.map(order => (
-                            <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 border border-gray-100">
+                            <div
+                                key={order.id}
+                                onClick={() => {
+                                    if (selectedOrders.includes(order.id.toString())) {
+                                        setSelectedOrders(selectedOrders.filter(id => id !== order.id.toString()));
+                                    } else {
+                                        setSelectedOrders([...selectedOrders, order.id.toString()]);
+                                    }
+                                }}
+                                className={`bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border cursor-pointer ${selectedOrders.includes(order.id.toString())
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-100'
+                                    } w-full md:w-[calc(50%-12px)] xl:w-[calc(33.333%-16px)]`}
+                            >
                                 <div className="flex flex-col gap-6">
                                     <div className="flex justify-between items-center">
-                                        <h2 className="text-lg font-semibold text-gray-900">Order #{order.id}</h2>
+                                        <div className="flex items-center gap-3">
+                                            <span className="label-text">Order #{order.id}</span>
+                                        </div>
                                         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                                             {order.orderStatus}
                                         </span>
@@ -317,7 +611,8 @@ export default function ComplatedContent() {
                                                     </div>
                                                     {order.items.length > 1 && (
                                                         <button
-                                                            onClick={() => {
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
                                                                 setSelectedImages(order.items)
                                                                 setIsModalOpen(true)
                                                             }}
@@ -333,7 +628,10 @@ export default function ComplatedContent() {
 
                                     <div className="border-t border-gray-100 pt-4">
                                         <button
-                                            onClick={() => handlePrint(order)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handlePrint(order)
+                                            }}
                                             className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
                                         >
                                             Cetak Label
