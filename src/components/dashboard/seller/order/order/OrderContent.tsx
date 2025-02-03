@@ -38,6 +38,7 @@ const getStatusColor = (status: string): string => {
 export default function OrderContent() {
     const [orders, setOrders] = useState<Order[]>([])
     const [loading, setLoading] = useState(true)
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -69,6 +70,44 @@ export default function OrderContent() {
         }
     };
 
+    const ItemsModal = ({ order, onClose }: { order: Order; onClose: () => void }) => {
+        if (!order) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">Order Items Details</h3>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div className="space-y-4">
+                        {order.items.map((item) => (
+                            <div key={item.id} className="flex items-center gap-4 p-3 border rounded-lg">
+                                <Image
+                                    src={item.thumbnail}
+                                    alt={item.name}
+                                    width={64}
+                                    height={64}
+                                    className="w-16 h-16 rounded-md object-cover"
+                                />
+                                <div>
+                                    <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                                    <div className="text-sm text-gray-500">
+                                        {item.quantity} x Rp {item.price.toLocaleString('id-ID')}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     if (loading) return <OrderSkelaton />
 
     return (
@@ -87,88 +126,94 @@ export default function OrderContent() {
 
                 {/* Desktop View */}
                 <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="table">
+                        {/* head */}
+                        <thead>
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Order Details
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Customer Information
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Items
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Order Status
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Payment Status
-                                </th>
+                                <th>Account & Order Details</th>
+                                <th>Customer Information</th>
+                                <th>Items & Total</th>
+                                <th>Status</th>
+                                <th></th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody>
                             {orders.map((order) => (
-                                <tr key={order.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {order.orderId}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {order.createdAt.toDate().toLocaleString('id-ID')}
-                                        </div>
-                                    </td>
-
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm text-gray-900">{order.fullName}</div>
-                                        <div className="text-sm text-gray-500">{order.email}</div>
-                                        <div className="text-sm text-gray-500">{order.phone}</div>
-                                        <div className="text-sm text-gray-500 mt-1">
-                                            {order.city}, {order.province}
-                                        </div>
-                                    </td>
-
-                                    <td className="px-6 py-4">
-                                        <div className="space-y-2">
-                                            {order.items.map((item) => (
-                                                <div key={item.id} className="flex items-center gap-3">
+                                <tr key={order.id}>
+                                    <td>
+                                        <div className="flex items-center gap-3">
+                                            <div className="avatar">
+                                                <div className="mask mask-squircle w-12 h-12">
                                                     <Image
-                                                        src={item.thumbnail}
-                                                        alt={item.name}
-                                                        width={40}
-                                                        height={40}
-                                                        className="w-10 h-10 rounded-md object-cover"
+                                                        src={order.photoURL}
+                                                        alt={order.displayName}
+                                                        width={48}
+                                                        height={48}
+                                                        className="object-cover"
                                                     />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="font-bold">{order.displayName}</div>
+                                                <div className="text-sm opacity-50">#{order.orderId}</div>
+                                                <div className="text-sm opacity-50">
+                                                    {order.createdAt.toDate().toLocaleString('id-ID')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {order.fullName}
+                                        <br />
+                                        <span className="badge badge-ghost badge-sm">{order.email}</span>
+                                        <br />
+                                        <span className="badge badge-ghost badge-sm">{order.phone}</span>
+                                        <br />
+                                        <span className="badge badge-ghost badge-sm">{order.address}, {order.addressDetail}</span>
+                                        <br />
+                                        <span className="badge badge-ghost badge-sm">{order.city}, {order.province}</span>
+                                    </td>
+                                    <td>
+                                        <div className="space-y-2">
+                                            {order.items.slice(0, 1).map((item) => (
+                                                <div key={item.id} className="flex items-center gap-3">
+                                                    <div className="avatar">
+                                                        <div className="mask mask-squircle w-12 h-12">
+                                                            <Image
+                                                                src={item.thumbnail}
+                                                                alt={item.name}
+                                                                width={48}
+                                                                height={48}
+                                                                className="object-cover"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                     <div>
-                                                        <div className="text-sm text-gray-900">{item.name}</div>
-                                                        <div className="text-sm text-gray-500">
+                                                        <div className="font-bold">{item.name}</div>
+                                                        <div className="text-sm opacity-50">
                                                             {item.quantity} x Rp {item.price.toLocaleString('id-ID')}
+                                                        </div>
+                                                        <div className="text-sm font-semibold">
+                                                            Total: Rp {order.totalAmount.toLocaleString('id-ID')}
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
+                                            {order.items.length > 1 && (
+                                                <button
+                                                    onClick={() => setSelectedOrder(order)}
+                                                    className="btn btn-ghost btn-xs"
+                                                >
+                                                    +{order.items.length - 1} more items
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
-
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            Rp {order.totalAmount.toLocaleString('id-ID')}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {order.totalItems} items
-                                        </div>
-                                    </td>
-
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td>
                                         <select
                                             value={order.orderStatus}
                                             onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                                            className={`px-3 py-1 text-sm rounded-lg font-medium border-0 
-                                                focus:ring-2 focus:ring-blue-500/20 cursor-pointer
-                                                ${getStatusColor(order.orderStatus)}`}
+                                            className="select select-bordered select-sm w-full max-w-xs"
                                         >
                                             <option value="pending">Pending</option>
                                             <option value="processing">Processing</option>
@@ -178,15 +223,6 @@ export default function OrderContent() {
                                             <option value="completed">Completed</option>
                                             <option value="cancel">Cancelled</option>
                                         </select>
-                                    </td>
-
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-3 py-1 text-xs rounded-full font-medium ${order.transactionStatus === 'success'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {order.transactionStatus}
-                                        </span>
                                     </td>
                                 </tr>
                             ))}
@@ -200,6 +236,20 @@ export default function OrderContent() {
                         <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                             {/* Header Section */}
                             <div className="p-5 border-b border-gray-100">
+                                <div className="flex gap-2 items-center mb-4">
+                                    <div className="mask mask-squircle w-12 h-12">
+                                        <Image
+                                            src={order.photoURL}
+                                            alt={order.displayName}
+                                            width={48}
+                                            height={48}
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                    <div className="profile-info">
+                                        <div className="font-bold">{order.displayName}</div>
+                                    </div>
+                                </div>
                                 <div className="flex justify-between items-start gap-4">
                                     <div className="space-y-1 w-fit">
                                         <div className="flex flex-col gap-3">
@@ -274,7 +324,7 @@ export default function OrderContent() {
                                 <div className="p-5">
                                     <h4 className="text-xs font-medium text-gray-500 uppercase mb-3">Order Items</h4>
                                     <div className="space-y-3">
-                                        {order.items.map((item) => (
+                                        {order.items.slice(0, 1).map((item) => (
                                             <div key={item.id} className="flex items-center gap-4 rounded-xl bg-gray-50/50 p-3">
                                                 <Image
                                                     src={item.thumbnail}
@@ -310,6 +360,12 @@ export default function OrderContent() {
                     ))}
                 </div>
             </div>
+            {selectedOrder && (
+                <ItemsModal
+                    order={selectedOrder}
+                    onClose={() => setSelectedOrder(null)}
+                />
+            )}
         </section>
     );
 }

@@ -77,6 +77,7 @@ export type CheckoutFormData = {
   uid: string;
   fullName: string;
   photoURL: string;
+  displayName: string;
   phone: string;
   email: string;
   address: string;

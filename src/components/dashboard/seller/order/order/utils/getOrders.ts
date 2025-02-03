@@ -16,6 +16,7 @@ export interface Order {
   addressDetail: string;
   city: string;
   createdAt: Timestamp;
+  displayName: string;
   district: string;
   email: string;
   fullName: string;
@@ -33,6 +34,7 @@ export interface Order {
   type: string;
   updatedAt: Timestamp;
   userId: string;
+  photoURL: string;
   zipCode: string;
 }
 

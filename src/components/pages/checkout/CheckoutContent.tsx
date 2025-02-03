@@ -147,6 +147,7 @@ export default function CheckoutContent() {
                 },
                 body: JSON.stringify({
                     ...data,
+                    displayName: user?.displayName || 'Anonymous User',
                     items: cartItems.map(item => ({
                         id: item.id,
                         quantity: item.quantity,
@@ -181,6 +182,7 @@ export default function CheckoutContent() {
                     amount: total,
                     firstName: data.fullName.split(' ')[0],
                     lastName: data.fullName.split(' ').slice(1).join(' '),
+                    displayName: data.displayName,
                     email: data.email,
                     phoneNumber: data.phone,
                     items: cartItems.map(item => ({
