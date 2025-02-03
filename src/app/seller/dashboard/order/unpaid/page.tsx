@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Metadata } from 'next'
 
-import UnpaidContent from "@/components/dashboard/user/order/unpaid/UnpaidContent"
+import UnpaidContent from "@/components/dashboard/seller/order/unpaid/UnpaidContent"
 
 export const metadata: Metadata = {
     title: 'ALLURE MART | Belum Dibayar Dashboard',

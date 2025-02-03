@@ -37,6 +37,7 @@ export const menuItems = [
     href: "/seller/dashboard/order",
     subItems: [
       { label: "Daftar Pesanan", href: "/seller/dashboard/order" },
+      { label: "Belum Dibayar", href: "/seller/dashboard/order/unpaid" },
       { label: "Pesanan Selesai", href: "/seller/dashboard/order/completed" },
     ],
   },

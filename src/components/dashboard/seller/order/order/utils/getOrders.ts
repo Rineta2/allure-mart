@@ -40,7 +40,10 @@ export interface Order {
 
 export async function getOrders() {
   try {
-    const ordersRef = collection(db, "orders");
+    const ordersRef = collection(
+      db,
+      process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS as string
+    );
     const ordersSnapshot = await getDocs(ordersRef);
     const orders = ordersSnapshot.docs.map((doc) => ({
       id: doc.id,

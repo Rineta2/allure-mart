@@ -4,7 +4,11 @@ import { OrderStatus } from "@/components/pages/checkout/hooks/schema/order";
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus) {
   try {
-    const orderRef = doc(db, "orders", orderId);
+    const orderRef = doc(
+      db,
+      process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS as string,
+      orderId
+    );
     await updateDoc(orderRef, {
       orderStatus: status,
       updatedAt: new Date(),
