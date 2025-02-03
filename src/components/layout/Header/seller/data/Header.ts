@@ -35,7 +35,10 @@ export const menuItems = [
     icon: MdFeaturedPlayList,
     label: "Pesanan",
     href: "/seller/dashboard/order",
-    subItems: [{ label: "Daftar Pesanan", href: "/seller/dashboard/order" }],
+    subItems: [
+      { label: "Daftar Pesanan", href: "/seller/dashboard/order" },
+      { label: "Pesanan Selesai", href: "/seller/dashboard/order/completed" },
+    ],
   },
 
   {

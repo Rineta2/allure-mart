@@ -1,6 +1,6 @@
 import React from 'react'
 
-import CompletedContent from '@/components/dashboard/user/order/completed/CompletedContent'
+import ComplatedContent from '@/components/dashboard/seller/order/complate/ComplatedContent'
 
 import { Metadata } from 'next'
 
@@ -11,6 +11,6 @@ export const metadata: Metadata = {
 
 export default function Completed() {
     return (
-        <CompletedContent />
+        <ComplatedContent />
     )
 }
