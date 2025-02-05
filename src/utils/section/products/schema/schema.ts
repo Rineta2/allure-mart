@@ -3,6 +3,12 @@ export interface ProductData {
   category: {
     name: string;
   };
+  author?: {
+    uid: string;
+    displayName: string;
+    photoURL: string;
+    role: string;
+  };
   name: string;
   content: string;
   createdAt: Date;

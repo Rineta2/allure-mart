@@ -247,13 +247,6 @@ export const useProduct = () => {
           photoURL: userData?.photoURL || "",
           role: userRole,
         },
-        seller:
-          userRole === process.env.NEXT_PUBLIC_SELLER
-            ? {
-                uid: currentUser.uid,
-                displayName: userData?.displayName || "",
-              }
-            : null,
       };
 
       await addDoc(
@@ -345,22 +338,13 @@ export const useProduct = () => {
           name: merek.name,
         },
         updatedAt: new Date(),
-        author: editingProduct.author || {
+        author: {
           uid: currentUser.uid,
           displayName: userData?.displayName || "",
           photoURL: userData?.photoURL || "",
           role: userRole,
         },
       };
-
-      if (userRole === process.env.NEXT_PUBLIC_SELLER) {
-        updateData.seller = {
-          uid: currentUser.uid,
-          displayName: userData?.displayName || "",
-        };
-      } else if (editingProduct.seller) {
-        updateData.seller = editingProduct.seller;
-      }
 
       if (formData.thumbnail || formData.imageSlider.length > 0) {
         const uploadPromises = [];
