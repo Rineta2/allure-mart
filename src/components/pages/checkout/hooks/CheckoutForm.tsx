@@ -144,11 +144,18 @@ export default function CheckoutForm({
 
                 const snap = window.snap;
                 const snapCallback: MidtransCallbacks = {
-                    onSuccess: function (result: MidtransResult) {
-                        setIsRedirecting(true);
-                        response.onSuccess(result);
-                        toast.success('Payment successful!');
-                        router.push(`/order/success/${response.orderId}`);
+                    onSuccess: async function (result: MidtransResult) {
+                        try {
+                            console.log('Transaction result:', result);
+                            setIsRedirecting(true);
+                            response.onSuccess(result);
+                            toast.success('Payment successful!');
+                            router.push(`/order/success/${response.orderId}`);
+                        } catch (error) {
+                            console.error('Error in onSuccess handler:', error);
+                            setIsRedirecting(true);
+                            router.push(`/order/success/${response.orderId}`);
+                        }
                     },
                     onPending: function (result: MidtransResult) {
                         setIsRedirecting(true);
@@ -176,14 +183,13 @@ export default function CheckoutForm({
             if (error instanceof Error) {
                 toast.error(`Payment processing error: ${error.message}`);
             } else {
-                toast.error('An error occurred while processing payment. Please try again later.');
+                toast.error('An error occurred while processing payment.');
             }
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Update the redirect URL construction
     const handleRedirect = () => {
         if (user?.role) {
             window.location.href = `/${user.role}/dashboard/profile/address`;

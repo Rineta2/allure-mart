@@ -10,7 +10,7 @@ import { useAuth } from '@/components/router/auth/AuthContext'
 
 import { db } from '@/utils/firebase'
 
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
 
 import toast from 'react-hot-toast';
 
@@ -30,7 +30,6 @@ import type { DefaultAddress, OrderData } from '@/components/pages/checkout/hook
 interface MidtransResult {
     status_code: string;
     transaction_status: string;
-    // tambahkan properti lain yang mungkin diperlukan
 }
 
 // Update tipe OrderResponse untuk menyertakan onSuccess
@@ -153,6 +152,23 @@ export default function CheckoutContent() {
         }
 
         try {
+            // First verify stock availability for all items
+            for (const item of cartItems) {
+                const productRef = doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_PRODUCTS as string, item.id);
+                const productSnap = await getDoc(productRef);
+
+                if (!productSnap.exists()) {
+                    toast.error(`Product ${item.name} no longer exists`);
+                    throw new Error(`Product ${item.name} no longer exists`);
+                }
+
+                const productData = productSnap.data();
+                if (productData.stock < item.quantity) {
+                    toast.error(`Insufficient stock for ${item.name}`);
+                    throw new Error(`Insufficient stock for ${item.name}`);
+                }
+            }
+
             console.log('Creating order with data:', data);
 
             // First create the order
@@ -222,8 +238,8 @@ export default function CheckoutContent() {
             const transactionData = await transactionResponse.json();
             console.log('Transaction created successfully:', transactionData);
 
-            // Setup Midtrans callback handler dengan tipe yang tepat
-            const handleMidtransCallback = (result: MidtransResult) => {
+            // Setup Midtrans callback handler
+            const handleMidtransCallback = async (result: MidtransResult) => {
                 if (result.status_code === '200' && result.transaction_status === 'settlement') {
                     clearCart();
                     toast.success('Payment successful! Cart has been cleared.');

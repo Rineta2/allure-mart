@@ -6,7 +6,7 @@ import { db } from "@/utils/firebase";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/router/auth/AuthContext";
 import Image from 'next/image';
-import type { MidtransResult } from '@/types/types';
+import { MidtransResult } from '@/components/pages/checkout/hooks/schema/Checkout';
 
 interface OrderItem {
     id: string;
@@ -73,7 +73,10 @@ export default function OrderPendingClient({ orderId }: { orderId: string }) {
                 onSuccess: () => {
                     router.push(`/order/success/${orderId}`);
                 },
-                onPending: (result: MidtransResult) => {
+                onPending: (result: MidtransResult & {
+                    status_message?: string;
+                    finish_redirect_url?: string;
+                }) => {
                     if (result?.finish_redirect_url) {
                         window.location.href = result.finish_redirect_url;
                     } else {
