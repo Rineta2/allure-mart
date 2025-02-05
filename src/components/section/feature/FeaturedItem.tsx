@@ -11,7 +11,7 @@ export default function FeaturedItem({ id, imageUrl, title }: FeaturedItemProps)
     return (
         <div
             key={id}
-            className="group cursor-pointer hover:-translate-y-1 transition-all duration-300"
+            className="group max-w-full sm:max-w-[350px] mx-auto cursor-pointer hover:-translate-y-1 transition-all duration-300"
         >
             <div className="relative overflow-hidden aspect-square mb-4 rounded-xl shadow-sm">
                 <Image
@@ -19,7 +19,7 @@ export default function FeaturedItem({ id, imageUrl, title }: FeaturedItemProps)
                     alt={title}
                     width={500}
                     height={500}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover w-full h-full transition-transform duration-500 object-center group-hover:scale-105"
                     priority
                 />
             </div>

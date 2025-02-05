@@ -1,4 +1,4 @@
-import { PaginationProps } from '@/components/pages/super-admins/products/category/schema/schema';
+import { PaginationProps } from '@/components/dashboard/super-admins/products/category/schema/schema';
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);

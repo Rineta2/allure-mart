@@ -1,6 +1,6 @@
 import React from 'react'
 
-import ArticleContent from "@/components/pages/super-admins/article/ArticleContent"
+import ArticleContent from "@/components/dashboard/super-admins/article/ArticleContent"
 
 export async function generateMetadata() {
     return {

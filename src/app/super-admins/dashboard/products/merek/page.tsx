@@ -1,4 +1,4 @@
-import MerekContent from '@/components/pages/super-admins/products/merek/MerekContent'
+import MerekContent from '@/components/dashboard/super-admins/products/merek/MerekContent'
 
 export async function generateMetadata() {
     return {

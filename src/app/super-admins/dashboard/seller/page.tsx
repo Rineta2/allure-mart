@@ -1,6 +1,6 @@
 import React from 'react'
 
-import SellerContent from "@/components/pages/super-admins/seller/SellerContent"
+import SellerContent from "@/components/dashboard/super-admins/seller/SellerContent"
 
 export async function generateMetadata() {
     return {

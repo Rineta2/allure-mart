@@ -1,4 +1,4 @@
-import GenderContent from '@/components/pages/super-admins/products/gender/genderContent'
+import GenderContent from '@/components/dashboard/super-admins/products/gender/genderContent'
 
 export async function generateMetadata() {
     return {

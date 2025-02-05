@@ -44,7 +44,7 @@ export default function Home() {
                     </div>
                 </div>
 
-                <div className="absolute bottom-[-50%] sm:bottom-[-40%] md:bottom-[-50%] left-[45%] sm:left-[50%] w-full h-full flex items-center justify-center">
+                <div className="absolute bottom-[-50%] sm:bottom-[-40%] md:bottom-[-50%] left-[42%] sm:left-[46%] w-full h-full flex items-center justify-center">
                     <a href="#populer" className="relative">
                         <Image
                             src={imgScroll}

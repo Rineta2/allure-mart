@@ -1,6 +1,6 @@
 import React from 'react'
 
-import CategoryContent from "@/components/pages/super-admins/article/category/CategoryContent"
+import CategoryContent from "@/components/dashboard/super-admins/article/category/CategoryContent"
 
 export async function generateMetadata() {
     return {
