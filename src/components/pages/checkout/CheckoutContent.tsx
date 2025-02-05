@@ -24,10 +24,26 @@ import OrderSummary from '@/components/pages/checkout/hooks/OrderSummary'
 
 import FeaturesSection from '@/components/pages/checkout/hooks/FeaturesSection'
 
-import type { DefaultAddress, OrderData, OrderResponse } from '@/components/pages/checkout/hooks/schema/Checkout'
+import type { DefaultAddress, OrderData } from '@/components/pages/checkout/hooks/schema/Checkout'
+
+// Tambahkan tipe untuk callback Midtrans
+interface MidtransResult {
+    status_code: string;
+    transaction_status: string;
+    // tambahkan properti lain yang mungkin diperlukan
+}
+
+// Update tipe OrderResponse untuk menyertakan onSuccess
+interface OrderResponse {
+    orderId: string;
+    totalAmount: number;
+    snapToken: string;
+    userPhotoURL: string;
+    onSuccess: (result: MidtransResult) => void;
+}
 
 export default function CheckoutContent() {
-    const { cartItems, totalItems } = useCart();
+    const { cartItems, totalItems, clearCart } = useCart();
     const { user, loading: authLoading } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [defaultAddress, setDefaultAddress] = useState<DefaultAddress | null>(null);
@@ -206,11 +222,21 @@ export default function CheckoutContent() {
             const transactionData = await transactionResponse.json();
             console.log('Transaction created successfully:', transactionData);
 
+            // Setup Midtrans callback handler dengan tipe yang tepat
+            const handleMidtransCallback = (result: MidtransResult) => {
+                if (result.status_code === '200' && result.transaction_status === 'settlement') {
+                    clearCart();
+                    toast.success('Payment successful! Cart has been cleared.');
+                }
+            };
+
+            // Return with snap callback
             return {
                 orderId: orderData.orderId,
                 totalAmount: total,
                 snapToken: transactionData.token,
-                userPhotoURL: user?.photoURL || '/default-avatar.png'
+                userPhotoURL: user?.photoURL || '/default-avatar.png',
+                onSuccess: handleMidtransCallback
             };
         } catch (error) {
             console.error("Error processing order:", error);

@@ -3,19 +3,20 @@
 import React, { useEffect } from 'react';
 
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 
 import {
     CheckoutFormData,
     CheckoutFormProps,
     OrderData,
     OrderResponse,
+    MidtransResult,
+    MidtransCallbacks
 } from '@/components/pages/checkout/hooks/schema/Checkout';
 
 import { useAuth } from '@/components/router/auth/AuthContext';
 
 import { useRouter } from 'next/navigation';
-
-import { toast } from 'react-hot-toast';
 
 // Type guard untuk memvalidasi OrderResponse
 function isOrderResponse(response: unknown): response is OrderResponse {
@@ -67,6 +68,9 @@ export default function CheckoutForm({
     // Add loading state
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+    // Add loading state for redirect
+    const [isRedirecting, setIsRedirecting] = React.useState(false);
+
     // Pre-fill the form when defaultAddress changes
     useEffect(() => {
         if (defaultAddress) {
@@ -92,21 +96,20 @@ export default function CheckoutForm({
 
     const handleFormSubmit = async (data: CheckoutFormData) => {
         if (!authUser) {
-            alert('Please login to continue with checkout');
+            toast.error('Please login to continue with checkout');
             router.push('/auth/login');
             return;
         }
 
-        // Set loading state to true when starting submission
         setIsSubmitting(true);
 
         if (!defaultAddress) {
-            alert('Please fill in your address details first before proceeding to payment.');
+            toast.error('Please fill in your address details first before proceeding to payment.');
             return;
         }
 
         if (!cartItems || cartItems.length === 0) {
-            alert('Your cart is empty. Please add items to your cart before proceeding.');
+            toast.error('Your cart is empty. Please add items to your cart before proceeding.');
             return;
         }
 
@@ -139,72 +142,43 @@ export default function CheckoutForm({
             if (typeof window.snap !== 'undefined') {
                 console.log('Initializing Midtrans payment...');
 
-                window.snap.pay(response.snapToken, {
-                    onSuccess: async function (result: MidtransResult) {
-                        console.log('Full Midtrans success response:', result);
-                        try {
-                            const updateResponse = await fetch('/api/update-transaction-status', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    orderId: response.orderId,
-                                    transactionStatus: 'success',
-                                    orderStatus: 'pending',
-                                    transactionId: result.transaction_id,
-                                    paymentType: result.payment_type,
-                                    transactionTime: result.transaction_time
-                                })
-                            });
-
-                            if (!updateResponse.ok) {
-                                const errorData = await updateResponse.json();
-                                console.error('Failed to update transaction status:', errorData);
-                                throw new Error(`Failed to update status: ${errorData.message}`);
-                            }
-
-                            const updateResult = await updateResponse.json();
-                            console.log('Transaction status updated successfully:', updateResult);
-
-                            // Tambahkan delay kecil untuk memastikan database terupdate
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-
-                            // Redirect ke halaman success
-                            router.push(`/order/success/${response.orderId}`);
-                        } catch (error) {
-                            console.error('Error updating transaction status:', error);
-                            if (error instanceof Error) {
-                                console.error('Error details:', error.message);
-                            }
-                            router.push(`/order/success/${response.orderId}`);
-                        }
+                const snap = window.snap;
+                const snapCallback: MidtransCallbacks = {
+                    onSuccess: function (result: MidtransResult) {
+                        setIsRedirecting(true);
+                        response.onSuccess(result);
+                        toast.success('Payment successful!');
+                        router.push(`/order/success/${response.orderId}`);
                     },
                     onPending: function (result: MidtransResult) {
-                        console.log('Payment pending:', result);
+                        setIsRedirecting(true);
+                        console.log('pending transaction', result);
+                        toast.success('Payment is pending. Please complete your payment.');
                         router.push(`/order/pending/${response.orderId}`);
                     },
                     onError: function (result: MidtransResult) {
-                        console.log('Payment error:', result);
+                        console.log('error transaction', result);
                         toast.error('Payment failed. Please try again.');
                     },
                     onClose: function () {
-                        console.log('Customer closed the popup without finishing the payment');
-                        toast.error('Payment cancelled. Please try again if you wish to continue.');
+                        console.log('customer closed the popup without finishing the payment');
+                        toast.success('Payment window closed. Your order is pending.');
+                        router.push(`/order/pending/${response.orderId}`);
                     }
-                });
+                };
+
+                snap.pay(response.snapToken, snapCallback);
             } else {
                 throw new Error('Midtrans Snap is not initialized');
             }
         } catch (error) {
             console.error('Payment Error:', error);
             if (error instanceof Error) {
-                alert(`Terjadi kesalahan dalam memproses pembayaran: ${error.message}`);
+                toast.error(`Payment processing error: ${error.message}`);
             } else {
-                alert('Terjadi kesalahan dalam memproses pembayaran. Silakan coba lagi nanti.');
+                toast.error('An error occurred while processing payment. Please try again later.');
             }
         } finally {
-            // Reset loading state when done
             setIsSubmitting(false);
         }
     };
@@ -271,202 +245,231 @@ export default function CheckoutForm({
     }
 
     return (
-        <div className="bg-white p-6 md:p-8 rounded-2xl border border-border/40 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-6">Billing Details</h2>
-            <form className="space-y-6" onSubmit={handleSubmit(handleFormSubmit)}>
-                {/* Name Field */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                    <input
-                        type="text"
-                        className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                        {...register('fullName')}
-                        readOnly
-                    />
-                    {errors.fullName && (
-                        <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
-                    )}
-                </div>
-
-                {/* Contact Fields */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input
-                            type="email"
-                            className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                            {...register('email')}
-                            readOnly
-                        />
-                        {errors.email && (
-                            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                        )}
-                    </div>
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <input
-                            type="tel"
-                            className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                            {...register('phone')}
-                            readOnly
-                        />
-                        {errors.phone && (
-                            <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
-                        )}
+        <>
+            {isRedirecting && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl flex flex-col items-center">
+                        <svg
+                            className="animate-spin h-10 w-10 text-primary mb-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                            />
+                            <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                        </svg>
+                        <p className="text-gray-700">Redirecting to success page...</p>
                     </div>
                 </div>
-
-                {/* Location Fields */}
-                <div className="space-y-6">
+            )}
+            <div className="bg-white p-6 md:p-8 rounded-2xl border border-border/40 shadow-sm">
+                <h2 className="text-2xl font-semibold mb-6">Billing Details</h2>
+                <form className="space-y-6" onSubmit={handleSubmit(handleFormSubmit)}>
+                    {/* Name Field */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Street Address</label>
+                        <label className="block text-sm font-medium text-gray-700">Full Name</label>
                         <input
                             type="text"
                             className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                            {...register('address')}
+                            {...register('fullName')}
                             readOnly
                         />
-                        {errors.address && (
-                            <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                        {errors.fullName && (
+                            <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
                         )}
                     </div>
 
+                    {/* Contact Fields */}
+                    <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                            <input
+                                type="email"
+                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                {...register('email')}
+                                readOnly
+                            />
+                            {errors.email && (
+                                <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                            <input
+                                type="tel"
+                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                {...register('phone')}
+                                readOnly
+                            />
+                            {errors.phone && (
+                                <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Location Fields */}
+                    <div className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Street Address</label>
+                            <input
+                                type="text"
+                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                {...register('address')}
+                                readOnly
+                            />
+                            {errors.address && (
+                                <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Detail Address</label>
+                            <input
+                                type="text"
+                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                {...register('addressDetail')}
+                                readOnly
+                            />
+                            {errors.addressDetail && (
+                                <p className="text-red-500 text-sm mt-1">{errors.addressDetail.message}</p>
+                            )}
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">City</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                    {...register('city')}
+                                    readOnly
+                                />
+                                {errors.city && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Province</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                    {...register('province')}
+                                    readOnly
+                                />
+                                {errors.province && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.province.message}</p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">ZIP Code</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                    {...register('zipCode')}
+                                    readOnly
+                                />
+                                {errors.zipCode && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.zipCode.message}</p>
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-medium text-gray-700">Location</label>
+                                {defaultAddress?.district && (
+                                    <div className="w-full h-[200px] rounded-xl overflow-hidden">
+                                        <iframe
+                                            title="Location Map"
+                                            width="100%"
+                                            height="100%"
+                                            frameBorder="0"
+                                            src={`https://www.openstreetmap.org/export/embed.html?bbox=106.62206172943115%2C-6.576112400000001%2C106.64206172943115%2C-6.572112400000001&layer=mapnik&marker=${defaultAddress.district}`}
+                                            allowFullScreen
+                                        />
+                                    </div>
+                                )}
+                                <input
+                                    type="hidden"
+                                    {...register('district')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-gray-700">Address Type</label>
+                            <input
+                                type="text"
+                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
+                                {...register('type')}
+                                readOnly
+                            />
+                            {errors.type && (
+                                <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Add this before the submit button */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Detail Address</label>
-                        <input
-                            type="text"
-                            className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                            {...register('addressDetail')}
-                            readOnly
+                        <label className="block text-sm font-medium text-gray-700">Message (Optional)</label>
+                        <textarea
+                            className="w-full p-3 border border-border/40 rounded-xl resize-none"
+                            rows={4}
+                            placeholder="Add any special notes or requests..."
+                            {...register('message')}
                         />
-                        {errors.addressDetail && (
-                            <p className="text-red-500 text-sm mt-1">{errors.addressDetail.message}</p>
+                        {errors.message && (
+                            <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>
                         )}
                     </div>
 
-                    <div className="grid sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">City</label>
-                            <input
-                                type="text"
-                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                                {...register('city')}
-                                readOnly
-                            />
-                            {errors.city && (
-                                <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Province</label>
-                            <input
-                                type="text"
-                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                                {...register('province')}
-                                readOnly
-                            />
-                            {errors.province && (
-                                <p className="text-red-500 text-sm mt-1">{errors.province.message}</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">ZIP Code</label>
-                            <input
-                                type="text"
-                                className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                                {...register('zipCode')}
-                                readOnly
-                            />
-                            {errors.zipCode && (
-                                <p className="text-red-500 text-sm mt-1">{errors.zipCode.message}</p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Location</label>
-                            {defaultAddress?.district && (
-                                <div className="w-full h-[200px] rounded-xl overflow-hidden">
-                                    <iframe
-                                        title="Location Map"
-                                        width="100%"
-                                        height="100%"
-                                        frameBorder="0"
-                                        src={`https://www.openstreetmap.org/export/embed.html?bbox=106.62206172943115%2C-6.576112400000001%2C106.64206172943115%2C-6.572112400000001&layer=mapnik&marker=${defaultAddress.district}`}
-                                        allowFullScreen
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-lg shadow-lg shadow-primary/30 disabled:bg-primary/70 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <svg
+                                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
                                     />
-                                </div>
-                            )}
-                            <input
-                                type="hidden"
-                                {...register('district')}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">Address Type</label>
-                        <input
-                            type="text"
-                            className="w-full p-3 border border-border/40 rounded-xl bg-gray-50 cursor-not-allowed"
-                            {...register('type')}
-                            readOnly
-                        />
-                        {errors.type && (
-                            <p className="text-red-500 text-sm mt-1">{errors.type.message}</p>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    />
+                                </svg>
+                                Processing...
+                            </>
+                        ) : (
+                            'Proceed to Payment'
                         )}
-                    </div>
-                </div>
-
-                {/* Add this before the submit button */}
-                <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Message (Optional)</label>
-                    <textarea
-                        className="w-full p-3 border border-border/40 rounded-xl resize-none"
-                        rows={4}
-                        placeholder="Add any special notes or requests..."
-                        {...register('message')}
-                    />
-                    {errors.message && (
-                        <p className="text-red-500 text-sm mt-1">{errors.message.message}</p>
-                    )}
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-200 font-medium text-lg shadow-lg shadow-primary/30 disabled:bg-primary/70 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                    {isSubmitting ? (
-                        <>
-                            <svg
-                                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                />
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                            </svg>
-                            Processing...
-                        </>
-                    ) : (
-                        'Proceed to Payment'
-                    )}
-                </button>
-            </form>
-        </div>
+                    </button>
+                </form>
+            </div>
+        </>
     );
 }

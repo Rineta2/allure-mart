@@ -2,6 +2,10 @@
 
 import React from 'react'
 
+import { formatDistanceToNow } from 'date-fns'
+
+import { id } from 'date-fns/locale'
+
 import { useFetchProducts } from '@/utils/section/products/useFetch'
 
 import ShopDetailsSkeleton from '@/components/pages/shop/[slug]/ShopDetailsSkelaton'
@@ -17,6 +21,10 @@ import ProductTabs from '@/components/pages/shop/[slug]/hooks/ProductTabs'
 import RelatedProducts from '@/components/pages/shop/[slug]/hooks/RelatedProducts'
 
 import ProductNotFound from '@/components/pages/shop/[slug]/ProductNotFound'
+
+import Image from 'next/image'
+
+import { LuMessageSquareShare } from "react-icons/lu";
 
 export default function ShopDetails({ slug }: { slug: string }) {
     const { products, loading } = useFetchProducts()
@@ -52,6 +60,29 @@ export default function ShopDetails({ slug }: { slug: string }) {
                         />
 
                         <ProductDetails product={product} shareUrl={shareUrl} />
+
+                        <div className="flex items-center gap-10 w-fit bg-white p-4 rounded-xl mt-10">
+                            <Image src={product.author?.photoURL || ''} alt={product.author?.displayName || ''} width={100} height={100} />
+
+                            <div className="flex flex-col gap-1">
+                                <span>{product.author?.displayName}</span>
+                                <span className="text-sm text-gray-500">
+                                    {formatDistanceToNow(
+                                        'toDate' in product.createdAt ? (product.createdAt as unknown as FirebaseFirestore.Timestamp).toDate() : product.createdAt,
+                                        {
+                                            addSuffix: true,
+                                            locale: id
+                                        }
+                                    )}
+                                </span>
+
+                                <button className="flex items-center gap-2 text-sm text-white btn btn-primary bg-primary">
+                                    Chat Sekarang
+                                    <LuMessageSquareShare />
+                                </button>
+
+                            </div>
+                        </div>
 
                         <ProductTabs
                             product={product}

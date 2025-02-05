@@ -41,6 +41,12 @@ export const useFetchProducts = () => {
             price: data.price || 0,
             stock: data.stock || 0,
             slug: data.slug,
+            author: {
+              displayName: data.author?.displayName,
+              photoURL: data.author?.photoURL,
+              uid: data.author?.uid,
+              role: data.author?.role,
+            },
             gender: {
               name: data.gender?.name,
             },

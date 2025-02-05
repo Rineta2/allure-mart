@@ -114,30 +114,29 @@ export interface OrderData extends CheckoutFormData {
 
 // Interface untuk hasil callback Midtrans
 export interface MidtransResult {
-  transaction_id: string;
+  status_code: string;
+  transaction_status: string;
   order_id: string;
+  gross_amount: string;
   payment_type: string;
   transaction_time: string;
-  transaction_status: string;
-  fraud_status?: string;
-  gross_amount?: string;
-  currency?: string;
-  status_code?: string;
-  status_message?: string;
-  payment_code?: string;
-  bill_key?: string;
-  biller_code?: string;
-  pdf_url?: string;
-  finish_redirect_url?: string;
-  payment_method?: string;
+  transaction_id: string;
+}
+
+export interface MidtransCallbacks {
+  onSuccess: (result: MidtransResult) => void;
+  onPending: (result: MidtransResult) => void;
+  onError: (result: MidtransResult) => void;
+  onClose: () => void;
 }
 
 // Interface untuk response order
 export interface OrderResponse {
   orderId: string;
   totalAmount: number;
-  userPhotoURL: string;
   snapToken: string;
+  userPhotoURL: string;
+  onSuccess: (result: MidtransResult) => void;
 }
 
 // Order Summary Props

@@ -107,8 +107,6 @@ export default function ProductDetails({ product, shareUrl }: ProductDetailsProp
 
             <AddToCartSection product={product} />
 
-            <div className="absolute bottom-28 left-0 w-full h-[1px] bg-gray-200"></div>
-
             <div className="flex flex-col gap-6 pt-12">
                 <div className="flex gap-2 items-center">
                     <h3 className="text-xl md:text-[16px] font-bold text-title">Category:</h3>
