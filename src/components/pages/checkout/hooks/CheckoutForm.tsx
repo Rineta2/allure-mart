@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect } from 'react';
 
 import { useForm } from 'react-hook-form';
@@ -43,7 +41,6 @@ export default function CheckoutForm({
 }: CheckoutFormProps) {
     const { user: authUser } = useAuth();
     const router = useRouter();
-
     const {
         register,
         handleSubmit,
@@ -128,49 +125,72 @@ export default function CheckoutForm({
                 createdAt: new Date(),
             };
 
-            console.log('Submitting order with data:', orderData);
-
             const response = await onSubmit(orderData);
-            console.log('Order response:', response);
 
             if (!isOrderResponse(response)) {
                 throw new Error('Invalid response format from server');
             }
 
-            console.log('Processed order data:', response);
-
             if (typeof window.snap !== 'undefined') {
-                console.log('Initializing Midtrans payment...');
-
                 const snap = window.snap;
                 const snapCallback: MidtransCallbacks = {
                     onSuccess: async function (result: MidtransResult) {
                         try {
-                            console.log('Transaction result:', result);
-                            setIsRedirecting(true);
-                            response.onSuccess(result);
-                            toast.success('Payment successful!');
-                            router.push(`/order/success/${response.orderId}`);
-                        } catch (error) {
-                            console.error('Error in onSuccess handler:', error);
-                            setIsRedirecting(true);
-                            router.push(`/order/success/${response.orderId}`);
+                            await fetch('/api/update-transaction-status', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    orderId: response.orderId,
+                                    transactionStatus: 'success',
+                                    orderStatus: 'processing',
+                                    transactionId: result.transaction_id,
+                                    paymentType: result.payment_type,
+                                    transactionTime: result.transaction_time
+                                })
+                            });
+
+                            for (const item of cartItems) {
+                                await fetch('/api/products/update-stock', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        productId: item.id,
+                                        quantity: item.quantity
+                                    })
+                                });
+                            }
+
+                            if (!isRedirecting) {
+                                setIsRedirecting(true);
+                                response.onSuccess(result);
+                                toast.success('Payment successful!');
+                                router.push(`/order/success/${response.orderId}`);
+                            }
+                        } catch {
+                            if (!isRedirecting) {
+                                setIsRedirecting(true);
+                                router.push(`/order/success/${response.orderId}`);
+                            }
                         }
                     },
-                    onPending: function (result: MidtransResult) {
-                        setIsRedirecting(true);
-                        console.log('pending transaction', result);
-                        toast.success('Payment is pending. Please complete your payment.');
-                        router.push(`/order/pending/${response.orderId}`);
+                    onPending: function () {
+                        if (!isRedirecting) {
+                            setIsRedirecting(true);
+                            router.push(`/order/pending/${response.orderId}`);
+                        }
                     },
-                    onError: function (result: MidtransResult) {
-                        console.log('error transaction', result);
+                    onError: function () {
                         toast.error('Payment failed. Please try again.');
                     },
-                    onClose: function () {
-                        console.log('customer closed the popup without finishing the payment');
-                        toast.success('Payment window closed. Your order is pending.');
-                        router.push(`/order/pending/${response.orderId}`);
+                    onClose: async function () {
+                        if (!isRedirecting) {
+                            setIsRedirecting(true);
+                            router.push(`/order/pending/${response.orderId}`);
+                        }
                     }
                 };
 
@@ -179,7 +199,6 @@ export default function CheckoutForm({
                 throw new Error('Midtrans Snap is not initialized');
             }
         } catch (error) {
-            console.error('Payment Error:', error);
             if (error instanceof Error) {
                 toast.error(`Payment processing error: ${error.message}`);
             } else {

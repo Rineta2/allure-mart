@@ -5,26 +5,15 @@ import {
   where,
   getDocs,
   updateDoc,
-  serverTimestamp,
 } from "firebase/firestore";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { TransactionStatus } from "@/components/pages/checkout/hooks/schema/order";
 
 // Define the schema for the transaction update data
-const transactionUpdateSchema = z.object({
-  orderId: z.string().nonempty("Order ID is required"),
-  transactionStatus: z.string().optional(),
-  orderStatus: z.string().optional(),
-  transactionId: z.string().nonempty("Transaction ID is required"),
-  transactionTime: z.string().nonempty("Transaction time is required"),
-});
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-
-    // Validate the data against the schema
-    const validatedData = transactionUpdateSchema.parse(data);
+    const { orderId, transactionStatus } = await request.json();
 
     const ordersRef = collection(
       db,
@@ -36,7 +25,7 @@ export async function POST(request: Request) {
       throw new Error("Collection name is not configured");
     }
 
-    const q = query(ordersRef, where("orderId", "==", validatedData.orderId));
+    const q = query(ordersRef, where("orderId", "==", orderId));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
@@ -51,40 +40,24 @@ export async function POST(request: Request) {
 
     const orderDoc = querySnapshot.docs[0];
 
-    const updateData = {
-      transactionStatus: validatedData.transactionStatus || "pending",
-      orderStatus:
-        validatedData.orderStatus ||
-        validatedData.transactionStatus ||
-        "pending",
-      updatedAt: serverTimestamp(),
-      transactionId: validatedData.transactionId,
-      transactionTime: validatedData.transactionTime,
-    };
+    await updateDoc(orderDoc.ref, {
+      transactionStatus: transactionStatus as TransactionStatus,
+      updatedAt: new Date(),
+    });
 
-    try {
-      await updateDoc(orderDoc.ref, updateData);
-
-      return NextResponse.json({
-        status: "success",
-        message: "Transaction status updated successfully",
-        data: updateData,
-      });
-    } catch (updateError) {
-      throw new Error(
-        `Failed to update document: ${
-          updateError instanceof Error ? updateError.message : "Unknown error"
-        }`
-      );
-    }
+    return NextResponse.json({
+      status: "success",
+      message: "Transaction status updated successfully",
+    });
   } catch (error) {
+    console.error("Error updating transaction status:", error);
     return NextResponse.json(
       {
         status: "error",
         message:
           error instanceof Error
             ? error.message
-            : "Failed to update transaction status",
+            : "Error updating transaction status",
       },
       { status: 500 }
     );

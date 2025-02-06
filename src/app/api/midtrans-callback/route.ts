@@ -20,7 +20,6 @@ export async function POST(request: Request) {
   try {
     const notification = await request.json();
 
-    // Validate collection name
     if (!process.env.NEXT_PUBLIC_COLLECTIONS_ORDERS) {
       throw new Error("Collection name is not configured");
     }
@@ -57,6 +56,10 @@ export async function POST(request: Request) {
           transactionStatus = "expired";
           orderStatus = "cancel";
           break;
+        case "authorize":
+          transactionStatus = "success";
+          orderStatus = "processing";
+          break;
         default:
           transactionStatus = "failure";
           orderStatus = "cancel";
@@ -71,7 +74,6 @@ export async function POST(request: Request) {
         ...(notification.settlement_time && {
           settlementTime: notification.settlement_time,
         }),
-        // Add status message if available
         ...(notification.status_message && {
           statusMessage: notification.status_message,
         }),

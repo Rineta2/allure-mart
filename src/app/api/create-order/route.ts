@@ -12,7 +12,6 @@ import {
 export async function POST(request: Request) {
   try {
     const orderData = await request.json();
-    console.log("Creating order with data:", orderData);
 
     const orderId: string = `ORD-${Date.now()}-${Math.random()
       .toString(36)
@@ -33,19 +32,15 @@ export async function POST(request: Request) {
         updatedAt: serverTimestamp(),
       });
 
-      console.log("Order document created successfully:", orderDoc.id);
-
       return NextResponse.json({
         status: "success",
         orderId,
         orderDocId: orderDoc.id,
       });
     } catch (dbError) {
-      console.error("Database error:", dbError);
       throw dbError;
     }
   } catch (error) {
-    console.error("Error in create-order route:", error);
     return NextResponse.json(
       {
         status: "error",

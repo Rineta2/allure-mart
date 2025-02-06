@@ -10,10 +10,6 @@ interface MidtransParameter {
   credit_card?: {
     secure: boolean;
   };
-  payment_type?: string;
-  bank_transfer?: {
-    bank: string;
-  };
   [key: string]: unknown; // Lebih aman daripada any
 }
 
@@ -35,7 +31,7 @@ export async function POST(request: Request) {
     });
 
     const requestData = await request.json();
-    const { orderId, amount, paymentMethod, bankName } = requestData;
+    const { orderId, amount } = requestData;
 
     // Validasi required fields
     if (!orderId || !amount) {
@@ -61,22 +57,6 @@ export async function POST(request: Request) {
         secure: true,
       },
     };
-
-    // Tambahkan konfigurasi khusus berdasarkan metode pembayaran
-    if (paymentMethod === "qris") {
-      parameter.payment_type = "qris";
-    } else if (paymentMethod === "bank_transfer") {
-      parameter.payment_type = "bank_transfer";
-      if (bankName) {
-        parameter.bank_transfer = {
-          bank: bankName.toLowerCase(),
-        };
-      }
-    } else if (paymentMethod === "gopay") {
-      parameter.payment_type = "gopay";
-    } else if (paymentMethod === "shopeepay") {
-      parameter.payment_type = "shopeepay";
-    }
 
     const transaction = await snap.createTransaction(parameter);
 

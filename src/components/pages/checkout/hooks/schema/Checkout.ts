@@ -117,10 +117,10 @@ export interface MidtransResult {
   status_code: string;
   transaction_status: string;
   order_id: string;
-  gross_amount: string;
+  transaction_id: string;
   payment_type: string;
   transaction_time: string;
-  transaction_id: string;
+  gross_amount: string;
 }
 
 export interface MidtransCallbacks {
