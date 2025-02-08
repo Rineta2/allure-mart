@@ -21,7 +21,7 @@ const Pathname = ({ children }: { children: React.ReactNode }) => {
     return (
         <main>
             <Script
-                src="https://app.sandbox.midtrans.com/snap/snap.js"
+                src="https://app.midtrans.com/snap/snap.js"
                 data-client-key={process.env.MIDTRANS_CLIENT_KEY}
                 strategy="lazyOnload"
                 onLoad={() => {
