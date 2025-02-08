@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     // Create Snap instance
     const snap = new midtransClient.Snap({
-      isProduction: false,
+      isProduction: true,
       serverKey: serverKey,
       clientKey: clientKey,
     });
