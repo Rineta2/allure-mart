@@ -61,7 +61,15 @@ export default function ProductContent() {
 
     const handleConfirmDelete = async () => {
         if (deletingProduct) {
-            await handleDeleteProduct(deletingProduct);
+            try {
+                await handleDeleteProduct(deletingProduct);
+                const modal = document.getElementById('delete_modal') as HTMLDialogElement;
+                modal?.close();
+            } catch (error) {
+                // Tambahkan notifikasi error
+                console.error('Failed to delete product:', error);
+                alert('Anda tidak memiliki izin untuk menghapus produk ini');
+            }
         }
     };
 

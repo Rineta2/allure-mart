@@ -397,25 +397,61 @@ export const useProduct = () => {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     try {
-      setLoading(true);
-      await deleteDoc(
-        doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_PRODUCTS as string, id)
+      const productRef = doc(
+        db,
+        process.env.NEXT_PUBLIC_COLLECTIONS_PRODUCTS as string,
+        productId
       );
+      const productSnap = await getDoc(productRef);
 
-      const modal = document.getElementById(
-        "delete_modal"
-      ) as HTMLDialogElement;
-      modal?.close();
+      if (!productSnap.exists()) {
+        throw new Error("Product not found");
+      }
+
+      const productData = productSnap.data();
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error("You must be logged in");
+      }
+
+      const userRef = doc(
+        db,
+        process.env.NEXT_PUBLIC_COLLECTIONS_ACCOUNTS as string,
+        user.uid
+      );
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+
+      const isSuperAdmin =
+        userData?.role === process.env.NEXT_PUBLIC_SUPER_ADMIN;
+      const isOwner =
+        productData.author?.uid === user.uid ||
+        productData.seller?.uid === user.uid;
+
+      if (!isSuperAdmin && !isOwner) {
+        throw new Error("You do not have permission to delete this product");
+      }
+
+      await deleteDoc(productRef);
+      setProducts((prevProducts) =>
+        prevProducts.filter((p) => p.id !== productId)
+      );
       setDeletingProduct(null);
-
-      fetchProducts();
       toast.success("Product deleted successfully");
-    } catch {
-      toast.error("Failed to delete product");
-    } finally {
-      setLoading(false);
+
+      return true;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast.error(
+        `Failed to delete product: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+      throw error;
     }
   };
 

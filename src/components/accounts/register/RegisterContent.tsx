@@ -10,8 +10,6 @@ import Signup from "@/components/assets/accounts/register/Signup.gif";
 
 import { FcGoogle } from "react-icons/fc";
 
-import { FaFacebookF } from "react-icons/fa";
-
 import { IoIosArrowBack } from "react-icons/io";
 
 import { useForm } from 'react-hook-form';
@@ -22,7 +20,7 @@ import { registerSchema, RegisterFormData } from '@/components/accounts/register
 
 import { auth, db } from '@/utils/firebase';
 
-import { createUserWithEmailAndPassword, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -98,37 +96,6 @@ export default function RegisterContent() {
         } catch (error) {
             console.error('Google sign-in error:', error);
             toast.error('Failed to sign in with Google. Please try again.');
-        }
-    };
-
-    const handleFacebookSignIn = async () => {
-        try {
-            const provider = new FacebookAuthProvider();
-            const userCredential = await signInWithPopup(auth, provider);
-            const user = userCredential.user;
-
-            // Create/Update user document in Firestore
-            const userRef = doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_ACCOUNTS as string, user.uid);
-            await setDoc(userRef, {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                role: Role.USER,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                isActive: true
-            }, { merge: true });
-
-            toast.success('Successfully signed in with Facebook!');
-
-            // Tambahkan delay 2 detik sebelum redirect
-            setTimeout(() => {
-                router.push('/');
-            }, 2000);
-        } catch (error) {
-            console.error('Facebook sign-in error:', error);
-            toast.error('Failed to sign in with Facebook. Please try again.');
         }
     };
 
@@ -229,14 +196,6 @@ export default function RegisterContent() {
                                     className='flex items-center justify-center border border-gray-300 rounded-md transition-all duration-300 text-[14px] sm:text-[15px] gap-2 w-full py-2.5 sm:py-3 hover:bg-primary hover:text-white hover:border-primary'
                                 >
                                     <FcGoogle size={18} className="sm:size-[20px]" /> Google
-                                </button>
-
-                                <button
-                                    onClick={handleFacebookSignIn}
-                                    type="button"
-                                    className='flex items-center justify-center border border-gray-300 rounded-md transition-all duration-300 text-[14px] sm:text-[15px] gap-2 w-full py-2.5 sm:py-3 hover:bg-primary hover:text-white hover:border-primary'
-                                >
-                                    <FaFacebookF size={18} className="sm:size-[20px]" /> Facebook
                                 </button>
                             </div>
                         </form>

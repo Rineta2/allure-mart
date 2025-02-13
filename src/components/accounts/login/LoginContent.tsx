@@ -16,14 +16,12 @@ import Login from "@/components/assets/accounts/login/Login.gif";
 
 import { FcGoogle } from "react-icons/fc";
 
-import { FaFacebookF } from "react-icons/fa";
-
 import { IoIosArrowBack } from "react-icons/io";
 
 import { useAuth } from '@/components/router/auth/AuthContext';
 
 export default function LoginContent() {
-    const { login, loginWithGoogle, loginWithFacebook } = useAuth();
+    const { login, loginWithGoogle } = useAuth();
 
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
@@ -47,14 +45,6 @@ export default function LoginContent() {
             await loginWithGoogle();
         } catch (error) {
             console.error('Google login error:', error);
-        }
-    };
-
-    const handleFacebookLogin = async () => {
-        try {
-            await loginWithFacebook();
-        } catch (error) {
-            console.error('Facebook login error:', error);
         }
     };
 
@@ -153,14 +143,6 @@ export default function LoginContent() {
                                     className='flex items-center justify-center border border-gray-300 rounded-md transition-all duration-300 text-[14px] sm:text-[15px] gap-2 w-full py-2.5 sm:py-3 hover:bg-primary hover:text-white hover:border-primary'
                                 >
                                     <FcGoogle size={18} className="sm:size-[20px]" /> Google
-                                </button>
-
-                                <button
-                                    onClick={handleFacebookLogin}
-                                    type="button"
-                                    className='flex items-center justify-center border border-gray-300 rounded-md transition-all duration-300 text-[14px] sm:text-[15px] gap-2 w-full py-2.5 sm:py-3 hover:bg-primary hover:text-white hover:border-primary'
-                                >
-                                    <FaFacebookF size={18} className="sm:size-[20px]" /> Facebook
                                 </button>
                             </div>
                         </form>

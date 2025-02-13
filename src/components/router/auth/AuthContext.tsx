@@ -10,7 +10,6 @@ import {
     signOut,
     onAuthStateChanged,
     GoogleAuthProvider,
-    FacebookAuthProvider,
     signInWithPopup
 } from 'firebase/auth';
 
@@ -23,7 +22,6 @@ type AuthContextType = {
     loading: boolean;
     login: (email: string, password: string) => Promise<UserAccount>;
     loginWithGoogle: () => Promise<UserAccount>;
-    loginWithFacebook: () => Promise<UserAccount>;
     logout: () => Promise<void>;
     deleteAccount: () => Promise<void>;
     hasRole: (roles: string | string[]) => boolean;
@@ -223,38 +221,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const loginWithFacebook = async (): Promise<UserAccount> => {
-        try {
-            const provider = new FacebookAuthProvider();
-            const result = await signInWithPopup(auth, provider);
-
-            const userDoc = await getDoc(doc(db, process.env.NEXT_PUBLIC_COLLECTIONS_ACCOUNTS as string, result.user.uid));
-            let userData: UserAccount;
-
-            if (!userDoc.exists()) {
-                userData = await createSocialUser({
-                    uid: result.user.uid,
-                    email: result.user.email,
-                    displayName: result.user.displayName,
-                    photoURL: result.user.photoURL
-                });
-            } else {
-                userData = userDoc.data() as UserAccount;
-            }
-
-            setUser(userData);
-            const welcomeMessage = getWelcomeMessage(userData.role);
-            toast.success(welcomeMessage);
-            handleRedirect(userData);
-
-            return userData;
-        } catch (error) {
-            console.error('Facebook login error:', error);
-            toast.error('Gagal login dengan Facebook');
-            throw error;
-        }
-    };
-
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
@@ -275,7 +241,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         loginWithGoogle,
-        loginWithFacebook,
         logout,
         deleteAccount,
         hasRole,
