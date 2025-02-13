@@ -38,11 +38,16 @@ export default function UnpaidContent() {
     useEffect(() => {
         const script = document.createElement('script')
         script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-        script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '')
+        script.setAttribute('data-client-key', process.env.MIDTRANS_CLIENT_KEY as string)
+        script.onerror = () => {
+            toast.error('Failed to load payment system. Please try again later.')
+        }
         document.head.appendChild(script)
 
         return () => {
-            document.head.removeChild(script)
+            if (document.head.contains(script)) {
+                document.head.removeChild(script)
+            }
         }
     }, [])
 
@@ -153,7 +158,7 @@ export default function UnpaidContent() {
     const confirmCancelOrder = async () => {
         if (!orderToCancel) return
 
-        const loadingToast = toast.loading('Cancelling order...');
+        const loadingToast = toast.loading('Cancelling order...')
 
         try {
             const response = await fetch('/api/cancel-order', {
@@ -164,24 +169,25 @@ export default function UnpaidContent() {
                 body: JSON.stringify({
                     orderId: orderToCancel,
                 }),
-            });
+            })
 
-            const data = await response.json();
+            const data = await response.json()
 
             if (response.ok && data.status === 'success') {
-                toast.dismiss(loadingToast);
-                toast.success('Order cancelled successfully');
+                toast.dismiss(loadingToast)
+                toast.success('Order cancelled successfully')
+                // Refresh the orders list
+                window.location.reload()
             } else {
-                toast.dismiss(loadingToast);
-                toast.error(data.message || 'Failed to cancel order');
+                throw new Error(data.message || 'Failed to cancel order')
             }
         } catch (error) {
-            console.error('Cancel order error:', error);
-            toast.dismiss(loadingToast);
-            toast.error('An error occurred while cancelling the order');
+            console.error('Cancel order error:', error)
+            toast.dismiss(loadingToast)
+            toast.error(error instanceof Error ? error.message : 'An error occurred while cancelling the order')
         } finally {
-            setShowCancelModal(false);
-            setOrderToCancel(null);
+            setShowCancelModal(false)
+            setOrderToCancel(null)
         }
     }
 
